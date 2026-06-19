@@ -3,14 +3,36 @@ import { useState } from "react";
 function App() {
   const [command, setCommand] = useState("");
   const [input, setInput] = useState("");
+  const [messages, setMessages] = useState([
+    {
+      sender: " hello jarvis",
+      text: "Hello Rakheeb! I am Jarvis. How can I help you today?",
+    },
+  ]);
 
   const speak = (text) => {
     const speech = new SpeechSynthesisUtterance(text);
     speech.lang = "en-US";
     window.speechSynthesis.speak(speech);
   };
+  const addJarvisMessage = (text) => {
+    setMessages((prev) => [
+      ...prev,
+      {
+        sender: " hello jarvis",
+        text,
+      },
+    ]);
+  };
 
   const handleCommand = (text) => {
+    setMessages((prev) => [
+      ...prev,
+      {
+        sender: "user",
+        text: text,
+      },
+    ]);
     const cmd = text.toLowerCase();
 
     setCommand(cmd);
@@ -32,22 +54,59 @@ function App() {
       );
     }
     else if (cmd.includes("calculator")) {
-      speak("Open Calculator");
+      addJarvisMessage("Opening Calculator...");
+      speak("Opening Calculator");
       window.electronAPI.openApp("calculator");
     }
 
     else if (cmd.includes("notepad")) {
-      speak("Open Notepad");
+      addJarvisMessage("Opening Notepad...");
+      speak("Opening Notepad");
       window.electronAPI.openApp("notepad");
     }
-
-    else if (
-      cmd.includes("vs code") ||
-      cmd.includes("vscode")
-    ) {
-      speak("Open VS Code");
+    else if (cmd.includes("vscode")) {
+      addJarvisMessage("Opening VS Code...");
+      speak("Opening VS Code");
       window.electronAPI.openApp("vscode");
-    } else {
+    } else if (cmd.includes("hello jarvis")) {
+      addJarvisMessage(
+        "Hello Rakheeb!How can I help you today?"
+      );
+      speak("Hello Rakheeb! How can I help you today?");
+    } else if (cmd.includes("good morning")) {
+      addJarvisMessage(
+        "Good Morning Rakheeb! Have a productive coding day."
+      );
+      speak("Good Morning Rakheeb! Have a productive coding day.");
+    } else if (cmd.includes("show time")) {
+      addJarvisMessage(
+        new Date().toLocaleTimeString()
+      );
+      speak(`The current time is ${new Date().toLocaleTimeString()}`);
+    } else if (cmd.includes("show date")) {
+      addJarvisMessage(
+        new Date().toDateString()
+      );
+      speak(`The current date is ${new Date().toDateString()}`);
+    } else if (cmd.includes("now tell me about virat kohli")) {
+      addJarvisMessage(
+        "Virat Kohli is an Indian cricketer and former captain of the Indian national team. He is one of the most successful batsmen in the history of cricket."
+      );
+      speak("Virat Kohli is an Indian cricketer and former captain of the Indian national team. He is one of the most successful batsmen in the history of cricket.");
+    }
+    else if (cmd.includes("what is the weather today")) {
+      addJarvisMessage(
+        "The weather is sunny with a high of 35°C and a low of 25°C."
+      );
+      speak("The weather is sunny with a high of 35°C and a low of 25°C.");
+    } else if (cmd.includes("can you tell about myself")) {
+      addJarvisMessage(
+        "your name is shaikh abdul rakheeb you are a passionate software developer with expertise in software development and a keen interest in AI technologies."
+
+      );
+      speak("your name is shaikh abdul rakheeb you are a passionate software developer with expertise in software development and a keen interest in AI technologies.");
+    }
+    else {
       speak(`You said ${cmd}`);
     }
   };
@@ -107,9 +166,34 @@ function App() {
         Jarvis AI
       </h1>
 
+      {/* STEP 5 YAHAN ADD KARNA HAI */}
+      <div className="w-[600px] h-[300px] bg-slate-900 rounded-xl p-4 overflow-y-auto border border-slate-700">
+
+        {messages.map((msg, index) => (
+          <div
+            key={index}
+            className={`mb-3 flex ${msg.sender === "user"
+              ? "justify-end"
+              : "justify-start"
+              }`}
+          >
+            <div
+              className={`px-4 py-2 rounded-xl max-w-[70%]
+            ${msg.sender === "user"
+                  ? "bg-blue-600"
+                  : "bg-slate-700"
+                }`}
+            >
+              {msg.text}
+            </div>
+          </div>
+        ))}
+
+      </div>
+
       <button
         onClick={startListening}
-        className="bg-blue-600 hover:bg-blue-700 px-6 py-3 rounded-xl text-lg font-semibold transition"
+        className="mt-4 bg-blue-600 hover:bg-blue-700 px-6 py-3 rounded-xl"
       >
         Start Listening
       </button>
@@ -120,30 +204,18 @@ function App() {
           value={input}
           onChange={(e) => setInput(e.target.value)}
           placeholder="Type your command..."
-          className="w-80 px-4 py-3 rounded-xl bg-white text-black border-2 border-gray-400 focus:border-blue-500 focus:outline-none"
+          className="w-80 px-4 py-3 rounded-xl bg-white text-black"
         />
 
         <button
           onClick={() => {
-            if (input.trim() !== "") {
-              handleCommand(input);
-              setInput("");
-            }
+            handleCommand(input);
+            setInput("");
           }}
-          className="bg-green-600 hover:bg-green-700 px-5 py-3 rounded-xl font-semibold"
+          className="bg-green-600 hover:bg-green-700 px-5 py-3 rounded-xl"
         >
           Send
         </button>
-      </div>
-
-      <div className="mt-8 bg-slate-900 p-4 rounded-xl w-[450px] text-center border border-slate-700">
-        <p className="text-gray-400">
-          Last Command
-        </p>
-
-        <h2 className="text-xl font-semibold mt-2">
-          {command || "Waiting for command..."}
-        </h2>
       </div>
 
     </div>
