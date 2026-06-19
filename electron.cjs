@@ -1,0 +1,55 @@
+const { app, BrowserWindow, ipcMain } = require("electron");
+const { exec } = require("child_process");
+const path = require("path");
+
+function createWindow() {
+    const win = new BrowserWindow({
+        width: 1200,
+        height: 800,
+
+        webPreferences: {
+            preload: path.join(__dirname, "preload.cjs"),
+            contextIsolation: true,
+            nodeIntegration: false,
+        },
+    });
+
+    win.loadURL("http://localhost:5173");
+
+    // Debug ke liye
+    win.webContents.openDevTools();
+}
+
+app.whenReady().then(() => {
+    createWindow();
+});
+
+ipcMain.handle("open-app", async (event, appName) => {
+    console.log("Received:", appName);
+
+    switch (appName) {
+        case "calculator":
+            console.log("Open Calculator");
+            exec("calc");
+            break;
+
+        case "notepad":
+            console.log("Open Notepad");
+            exec("notepad");
+            break;
+
+        case "vscode":
+            console.log("Open VS Code");
+            exec("code");
+            break;
+
+        default:
+            console.log("Unknown App:", appName);
+    }
+});
+
+app.on("window-all-closed", () => {
+    if (process.platform !== "darwin") {
+        app.quit();
+    }
+});

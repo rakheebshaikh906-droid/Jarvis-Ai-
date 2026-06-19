@@ -16,20 +16,37 @@ function App() {
     setCommand(cmd);
 
     if (cmd.includes("youtube")) {
-      speak("Opening YouTube");
+      speak("Open YouTube");
       window.open("https://www.youtube.com", "_blank");
     } else if (cmd.includes("google")) {
-      speak("Opening Google");
+      speak("Open Google");
       window.open("https://www.google.com", "_blank");
     } else if (cmd.includes("github")) {
-      speak("Opening GitHub");
+      speak("Open GitHub");
       window.open("https://github.com", "_blank");
     } else if (cmd.includes("leetcode")) {
-      speak("Opening LeetCode");
+      speak("Open LeetCode");
       window.open(
         "https://leetcode.com/u/rakheebshaikh906/",
         "_blank"
       );
+    }
+    else if (cmd.includes("calculator")) {
+      speak("Open Calculator");
+      window.electronAPI.openApp("calculator");
+    }
+
+    else if (cmd.includes("notepad")) {
+      speak("Open Notepad");
+      window.electronAPI.openApp("notepad");
+    }
+
+    else if (
+      cmd.includes("vs code") ||
+      cmd.includes("vscode")
+    ) {
+      speak("Open VS Code");
+      window.electronAPI.openApp("vscode");
     } else {
       speak(`You said ${cmd}`);
     }
