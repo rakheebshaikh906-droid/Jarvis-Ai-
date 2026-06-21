@@ -1,4 +1,6 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
+import { askGemini } from "./gemini";
+
 
 function App() {
   const [command, setCommand] = useState("");
@@ -9,6 +11,7 @@ function App() {
       text: "Hello Rakheeb! I am Jarvis. How can I help you today?",
     },
   ]);
+  const chatRef = useRef(null);
 
   const speak = (text) => {
     const speech = new SpeechSynthesisUtterance(text);
@@ -25,7 +28,7 @@ function App() {
     ]);
   };
 
-  const handleCommand = (text) => {
+  const handleCommand = async (text) => {
     setMessages((prev) => [
       ...prev,
       {
@@ -50,6 +53,13 @@ function App() {
       speak("Open LeetCode");
       window.open(
         "https://leetcode.com/u/rakheebshaikh906/",
+        "_blank"
+      );
+    }
+    else if (cmd.includes("linkdin")) {
+      speak("Open linkdin");
+      window.open(
+        "www.linkedin.com/in/rakheeb-shaikh-54830b380",
         "_blank"
       );
     }
@@ -107,7 +117,20 @@ function App() {
       speak("your name is shaikh abdul rakheeb you are a passionate software developer with expertise in software development and a keen interest in AI technologies.");
     }
     else {
-      speak(`You said ${cmd}`);
+      try {
+
+        addJarvisMessage(" Thinking...");
+
+        const answer = await askGemini(text);
+
+        addJarvisMessage(answer);
+
+        speak(answer);
+
+      } catch (error) {
+        console.log(error);
+        addJarvisMessage(error.message);
+      }
     }
   };
 
@@ -158,6 +181,12 @@ function App() {
 
     recognition.start();
   };
+  useEffect(() => {
+    chatRef.current?.scrollTo({
+      top: chatRef.current.scrollHeight,
+      behavior: "smooth",
+    });
+  }, [messages]);
 
   return (
     <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center text-white px-4">
@@ -167,7 +196,10 @@ function App() {
       </h1>
 
       {/* STEP 5 YAHAN ADD KARNA HAI */}
-      <div className="w-[600px] h-[300px] bg-slate-900 rounded-xl p-4 overflow-y-auto border border-slate-700">
+      <div
+        ref={chatRef}
+        className="w-[700px] h-[350px] bg-slate-900 rounded-xl p-4 overflow-y-auto border border-slate-700"
+      >
 
         {messages.map((msg, index) => (
           <div
@@ -203,7 +235,13 @@ function App() {
           type="text"
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          placeholder="Type your command..."
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && input.trim()) {
+              handleCommand(input);
+              setInput("");
+            }
+          }}
+          placeholder="Message Jarvis..."
           className="w-80 px-4 py-3 rounded-xl bg-white text-black"
         />
 
