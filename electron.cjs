@@ -42,6 +42,17 @@ ipcMain.handle("open-app", async (event, appName) => {
             console.log("Open VS Code");
             exec("code");
             break;
+        case "chrome":
+            exec("start chrome");
+            break;
+
+        case "explorer":
+            exec("explorer");
+            break;
+
+        case "spotify":
+            exec("start spotify");
+            break;
 
         default:
             console.log("Unknown App:", appName);

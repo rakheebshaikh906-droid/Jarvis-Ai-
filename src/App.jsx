@@ -62,7 +62,7 @@ function App() {
     else if (cmd.includes("linkdin")) {
       speak("Open linkdin");
       window.open(
-        "www.linkedin.com/in/rakheeb-shaikh-54830b380",
+        "https://www.linkedin.com/in/rakheeb-shaikh-54830b380",
         "_blank"
       );
     }
@@ -81,11 +81,36 @@ function App() {
       addJarvisMessage("Opening VS Code...");
       speak("Opening VS Code");
       window.electronAPI.openApp("vscode");
-    } else if (cmd.includes("hello jarvis")) {
-      addJarvisMessage(
-        "Hello Rakheeb!How can I help you today?"
-      );
-      speak("Hello Rakheeb! How can I help you today?");
+    } else if (cmd.includes("chrome")) {
+      addJarvisMessage("Opening Chrome...");
+      speak("Opening Chrome");
+      window.electronAPI.openApp("chrome");
+    } else if (cmd.includes("explorer")) {
+      addJarvisMessage("Opening File Explorer...");
+      speak("Opening File Explorer");
+      window.electronAPI.openApp("explorer");
+    } else if (cmd.includes("spotify")) {
+      addJarvisMessage("Opening Spotify...");
+      speak("Opening Spotify");
+      window.electronAPI.openApp("spotify");
+    }
+    else if (cmd.includes("hello jarvis")) {
+
+      const hour = new Date().getHours();
+
+      let greeting = "Hello Rakheeb";
+
+      if (hour < 12) {
+        greeting = "Good Morning Rakheeb";
+      } else if (hour < 18) {
+        greeting = "Good Afternoon Rakheeb";
+      } else {
+        greeting = "Good Evening Rakheeb";
+      }
+
+      addJarvisMessage(`${greeting}! How can I help you today?`);
+
+      speak(`${greeting}! How can I help you today?`);
     } else if (cmd.includes("good morning")) {
       addJarvisMessage(
         "Good Morning Rakheeb! Have a productive coding day."
