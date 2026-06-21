@@ -12,6 +12,7 @@ function App() {
     },
   ]);
   const chatRef = useRef(null);
+  const [loading, setLoading] = useState(false);
 
   const speak = (text) => {
     const speech = new SpeechSynthesisUtterance(text);
@@ -27,6 +28,8 @@ function App() {
       },
     ]);
   };
+
+
 
   const handleCommand = async (text) => {
     setMessages((prev) => [
@@ -115,21 +118,135 @@ function App() {
 
       );
       speak("your name is shaikh abdul rakheeb you are a passionate software developer with expertise in software development and a keen interest in AI technologies.");
+    } else if (cmd.startsWith("my name is")) {
+
+      const name = text.replace(/my name is/i, "").trim();
+
+      localStorage.setItem("userName", name);
+
+      addJarvisMessage(
+        `Okay, I will remember that your name is ${name}`
+      );
+
+      speak(
+        `Okay, I will remember that your name is ${name}`
+      );
     }
+    else if (cmd.includes("what is my name")) {
+
+      const savedName = localStorage.getItem("userName");
+
+      if (savedName) {
+
+        addJarvisMessage(
+          `Your name is ${savedName}`
+        );
+
+        speak(
+          `Your name is ${savedName}`
+        );
+
+      } else {
+
+        addJarvisMessage(
+          "I don't know your name yet."
+        );
+
+        speak(
+          "I don't know your name yet."
+        );
+      }
+    } else if (cmd.startsWith("remember that")) {
+
+      const memory = text.replace(/remember that/i, "").trim();
+
+      let memories =
+        JSON.parse(localStorage.getItem("memories")) || {};
+
+      const parts = memory.split(" is ");
+
+      if (parts.length >= 2) {
+
+        const key = parts[0].trim().toLowerCase();
+        const value = parts.slice(1).join(" is ").trim();
+
+        memories[key] = value;
+
+        localStorage.setItem(
+          "memories",
+          JSON.stringify(memories)
+        );
+
+        addJarvisMessage(
+          `Okay, I'll remember that ${key} is ${value}`
+        );
+
+        speak(
+          `Okay, I'll remember that ${key} is ${value}`
+        );
+      }
+    } else if (cmd.startsWith("what is my")) {
+
+      const key = cmd
+        .replace("what is my", "")
+        .replace("?", "")
+        .trim();
+
+      const memories =
+        JSON.parse(localStorage.getItem("memories")) || {};
+
+      if (memories[key]) {
+
+        addJarvisMessage(
+          `Your ${key} is ${memories[key]}`
+        );
+
+        speak(
+          `Your ${key} is ${memories[key]}`
+        );
+
+      } else {
+
+        addJarvisMessage(
+          `I don't know your ${key} yet.`
+        );
+
+        speak(
+          `I don't know your ${key} yet.`
+        );
+      }
+    } else if (cmd.startsWith("what is my")) {
+
+      const key = ("my " + cmd
+        .replace("what is my", "")
+        .replace("?", "")
+        .trim()).toLowerCase();
+
+      console.log("Searching Key:", key);
+
+      const memories =
+        JSON.parse(localStorage.getItem("memories")) || {};
+
+      console.log("All Memories:", memories);
+
+    }
+
     else {
       try {
 
-        addJarvisMessage(" Thinking...");
+        setLoading(true);
 
         const answer = await askGemini(text);
 
         addJarvisMessage(answer);
 
         speak(answer);
+        setLoading(false);
+
 
       } catch (error) {
+        setLoading(false);
         console.log(error);
-        addJarvisMessage(error.message);
       }
     }
   };
@@ -204,22 +321,39 @@ function App() {
         {messages.map((msg, index) => (
           <div
             key={index}
-            className={`mb-3 flex ${msg.sender === "user"
+            className={`mb-4 flex ${msg.sender === "user"
               ? "justify-end"
               : "justify-start"
               }`}
           >
-            <div
-              className={`px-4 py-2 rounded-xl max-w-[70%]
-            ${msg.sender === "user"
-                  ? "bg-blue-600"
-                  : "bg-slate-700"
-                }`}
-            >
-              {msg.text}
+            <div className="flex flex-col max-w-[75%]">
+
+              <span className="text-xs text-gray-400 mb-1">
+                {msg.sender === "user"
+                  ? " You"
+                  : " Jarvis"}
+              </span>
+
+              <div
+                className={`px-4 py-3 rounded-2xl break-words ${msg.sender === "user"
+                  ? "bg-blue-600 text-white"
+                  : "bg-slate-700 text-white"
+                  }`}
+              >
+                {msg.text}
+              </div>
+
             </div>
           </div>
         ))}
+
+
+        {loading && (
+          <div className="text-gray-400 italic mt-2">
+            Jarvis is typing...
+          </div>
+        )}
+
 
       </div>
 
