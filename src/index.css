@@ -1,1 +1,376 @@
 @import "tailwindcss";
+
+:root {
+    --jarvis-gold: #f0b840;
+    --jarvis-gold-bright: #ffd76a;
+    --jarvis-gold-dim: #7a5820;
+    --jarvis-gold-dimmer: #3d2e10;
+    --jarvis-bg: #070503;
+    --jarvis-panel: #0a0704;
+    --jarvis-panel-2: #0d0a05;
+    --jarvis-text: #f0e0b0;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+    margin: 0;
+    padding: 0;
+    background: var(--jarvis-bg);
+    font-family: 'Courier New', ui-monospace, monospace;
+    color: var(--jarvis-text);
+}
+
+/* ---------- scrollbars ---------- */
+.jarvis-scroll::-webkit-scrollbar {
+    width: 6px;
+}
+
+.jarvis-scroll::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.jarvis-scroll::-webkit-scrollbar-thumb {
+    background: var(--jarvis-gold-dim);
+    border-radius: 3px;
+}
+
+.jarvis-scroll::-webkit-scrollbar-thumb:hover {
+    background: var(--jarvis-gold);
+}
+
+/* ---------- background grid + vignette ---------- */
+.jarvis-grid-bg {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    background-image:
+        linear-gradient(rgba(240, 184, 64, 0.05) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(240, 184, 64, 0.05) 1px, transparent 1px);
+    background-size: 34px 34px;
+    mask-image: radial-gradient(ellipse 80% 70% at 50% 30%, black 40%, transparent 90%);
+}
+
+.jarvis-vignette {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    background: radial-gradient(ellipse 90% 60% at 50% 0%, rgba(240, 184, 64, 0.07), transparent 60%),
+        radial-gradient(ellipse 60% 50% at 100% 100%, rgba(240, 184, 64, 0.05), transparent 60%);
+}
+
+/* ---------- particles ---------- */
+.jarvis-particles {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    overflow: hidden;
+}
+
+.jarvis-particle {
+    position: absolute;
+    bottom: -10px;
+    width: 3px;
+    height: 3px;
+    border-radius: 50%;
+    background: var(--jarvis-gold);
+    opacity: 0;
+    box-shadow: 0 0 6px 1px rgba(240, 184, 64, 0.8);
+    animation: jarvis-float linear infinite;
+}
+
+@keyframes jarvis-float {
+    0% {
+        transform: translateY(0) translateX(0);
+        opacity: 0;
+    }
+
+    10% {
+        opacity: 0.7;
+    }
+
+    90% {
+        opacity: 0.5;
+    }
+
+    100% {
+        transform: translateY(-110vh) translateX(20px);
+        opacity: 0;
+    }
+}
+
+/* ---------- glass panel ---------- */
+.glass-panel {
+    background: linear-gradient(180deg, rgba(20, 15, 6, 0.55), rgba(8, 6, 3, 0.65));
+    border: 0.5px solid var(--jarvis-gold-dimmer);
+    border-radius: 12px;
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    position: relative;
+}
+
+.glass-panel::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: 12px;
+    background: linear-gradient(135deg, rgba(240, 184, 64, 0.08), transparent 40%);
+    pointer-events: none;
+}
+
+/* animated glow border for active/focus panels */
+.glow-border {
+    position: relative;
+}
+
+.glow-border::after {
+    content: "";
+    position: absolute;
+    inset: -1px;
+    border-radius: inherit;
+    border: 1px solid rgba(240, 184, 64, 0.35);
+    box-shadow: 0 0 16px 1px rgba(240, 184, 64, 0.15) inset, 0 0 12px 0 rgba(240, 184, 64, 0.12);
+    pointer-events: none;
+    animation: jarvis-pulse 4s ease-in-out infinite;
+}
+
+@keyframes jarvis-pulse {
+
+    0%,
+    100% {
+        opacity: 0.55;
+    }
+
+    50% {
+        opacity: 1;
+    }
+}
+
+.glow-text {
+    color: var(--jarvis-gold-bright);
+    text-shadow: 0 0 10px rgba(240, 184, 64, 0.55), 0 0 22px rgba(240, 184, 64, 0.25);
+}
+
+.glow-dot {
+    box-shadow: 0 0 6px 2px currentColor;
+}
+
+/* hex badge */
+.hex-clip {
+    clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+}
+
+/* sidebar nav item hover/active */
+.nav-item {
+    transition: background 0.2s ease, border-color 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease;
+}
+
+.nav-item:hover {
+    transform: translateX(2px);
+    background: rgba(240, 184, 64, 0.06);
+    border-color: rgba(240, 184, 64, 0.25);
+}
+
+.nav-item.active {
+    background: linear-gradient(90deg, rgba(240, 184, 64, 0.16), rgba(240, 184, 64, 0.02));
+    border-color: rgba(240, 184, 64, 0.45);
+    box-shadow: 0 0 18px -4px rgba(240, 184, 64, 0.4);
+}
+
+/* buttons */
+.btn-exec {
+    background: var(--jarvis-gold);
+    color: #070503;
+    box-shadow: 0 0 18px -2px rgba(240, 184, 64, 0.7);
+    transition: filter 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.btn-exec:hover {
+    filter: brightness(1.12);
+    box-shadow: 0 0 26px -2px rgba(240, 184, 64, 0.95);
+    transform: translateY(-1px);
+}
+
+.btn-exec:active {
+    transform: translateY(0px) scale(0.98);
+}
+
+.btn-ghost {
+    transition: all 0.2s ease;
+}
+
+.btn-ghost:hover {
+    border-color: rgba(240, 184, 64, 0.55);
+    color: var(--jarvis-gold-bright);
+    box-shadow: 0 0 14px -4px rgba(240, 184, 64, 0.5);
+}
+
+.mic-btn {
+    transition: all 0.2s ease;
+}
+
+.mic-btn:hover {
+    box-shadow: 0 0 16px -2px rgba(240, 184, 64, 0.6);
+    border-color: var(--jarvis-gold);
+}
+
+.mic-btn.listening {
+    animation: jarvis-mic-pulse 1.2s ease-in-out infinite;
+    border-color: var(--jarvis-gold);
+    color: var(--jarvis-gold-bright);
+}
+
+@keyframes jarvis-mic-pulse {
+
+    0%,
+    100% {
+        box-shadow: 0 0 0 0 rgba(240, 184, 64, 0.5);
+    }
+
+    50% {
+        box-shadow: 0 0 0 8px rgba(240, 184, 64, 0);
+    }
+}
+
+/* typing indicator */
+.typing-dot {
+    animation: jarvis-typing 1s ease-in-out infinite;
+}
+
+.typing-dot:nth-child(2) {
+    animation-delay: 0.15s;
+}
+
+.typing-dot:nth-child(3) {
+    animation-delay: 0.3s;
+}
+
+@keyframes jarvis-typing {
+
+    0%,
+    80%,
+    100% {
+        transform: translateY(0);
+        opacity: 0.4;
+    }
+
+    40% {
+        transform: translateY(-4px);
+        opacity: 1;
+    }
+}
+
+/* waveform bars (header decorative) */
+.wave-bar {
+    animation: jarvis-wave 1.4s ease-in-out infinite;
+}
+
+@keyframes jarvis-wave {
+
+    0%,
+    100% {
+        height: 30%;
+        opacity: 0.4;
+    }
+
+    50% {
+        height: 100%;
+        opacity: 1;
+    }
+}
+
+/* AI core rotating rings */
+.ai-ring {
+    animation: jarvis-spin linear infinite;
+}
+
+@keyframes jarvis-spin {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.ai-ring-rev {
+    animation: jarvis-spin-rev linear infinite;
+}
+
+@keyframes jarvis-spin-rev {
+    from {
+        transform: rotate(360deg);
+    }
+
+    to {
+        transform: rotate(0deg);
+    }
+}
+
+.ai-core-pulse {
+    animation: jarvis-core-pulse 2.4s ease-in-out infinite;
+}
+
+@keyframes jarvis-core-pulse {
+
+    0%,
+    100% {
+        opacity: 0.75;
+        transform: scale(0.98);
+    }
+
+    50% {
+        opacity: 1;
+        transform: scale(1.04);
+    }
+}
+
+/* radial CPU gauge */
+.gauge-ring {
+    transition: stroke-dashoffset 0.6s ease;
+    filter: drop-shadow(0 0 6px rgba(240, 184, 64, 0.6));
+}
+
+/* scan line sweep across chat window */
+.scan-sweep {
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 40%;
+    background: linear-gradient(180deg, transparent, rgba(240, 184, 64, 0.04), transparent);
+    animation: jarvis-scan 6s linear infinite;
+    pointer-events: none;
+}
+
+@keyframes jarvis-scan {
+    0% {
+        top: -40%;
+    }
+
+    100% {
+        top: 100%;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+    .jarvis-particle,
+    .glow-border::after,
+    .wave-bar,
+    .ai-ring,
+    .ai-ring-rev,
+    .ai-core-pulse,
+    .scan-sweep,
+    .mic-btn.listening,
+    .typing-dot {
+        animation: none !important;
+    }
+}
