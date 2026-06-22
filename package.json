@@ -1,12 +1,15 @@
 {
   "name": "jarvis-ai",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
+  "description": "AI-powered desktop assistant built with React, Electron and Gemini AI",
+  "author": "Rakheeb Shaikh",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "electron": "electron electron.cjs",
     "build": "vite build",
+    "dist": "electron-builder",
     "lint": "eslint .",
     "preview": "vite preview"
   },
@@ -24,10 +27,24 @@
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^6.0.1",
     "electron": "^42.4.1",
+    "electron-builder": "^26.15.3",
     "eslint": "^10.3.0",
     "eslint-plugin-react-hooks": "^7.1.1",
     "eslint-plugin-react-refresh": "^0.5.2",
     "globals": "^17.6.0",
     "vite": "^8.0.12"
+  },
+  "main": "electron.cjs",
+  "build": {
+    "appId": "com.rakheeb.jarvis",
+    "productName": "Jarvis AI",
+    "files": [
+      "dist/**/*",
+      "electron.cjs",
+      "preload.cjs"
+    ],
+    "win": {
+      "target": "nsis"
+    }
   }
 }

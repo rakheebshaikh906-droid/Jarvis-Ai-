@@ -1,5 +1,9 @@
 import { useState, useRef, useEffect } from "react";
 import { askGemini } from "./gemini";
+import { getWeather } from "./weather";
+
+console.log(import.meta.env.VITE_WEATHER_API_KEY);
+
 
 
 function App() {
@@ -14,6 +18,8 @@ function App() {
   const chatRef = useRef(null);
   const [loading, setLoading] = useState(false);
 
+
+
   const speak = (text) => {
     const speech = new SpeechSynthesisUtterance(text);
     speech.lang = "en-US";
@@ -27,6 +33,29 @@ function App() {
         text,
       },
     ]);
+  };
+  const downloadChat = () => {
+
+    const chatText = messages
+      .map(msg => `${msg.sender}: ${msg.text}`)
+      .join("\n\n");
+
+    const blob = new Blob(
+      [chatText],
+      { type: "text/plain" }
+    );
+
+    const url = URL.createObjectURL(blob);
+
+    const a = document.createElement("a");
+
+    a.href = url;
+
+    a.download = "chat.txt";
+
+    a.click();
+
+    URL.revokeObjectURL(url);
   };
 
 
@@ -254,8 +283,26 @@ function App() {
 
       console.log("All Memories:", memories);
 
-    }
+    } else if (cmd.includes("weather in")) {
+      try {
+        const city = text
+          .toLowerCase()
+          .replace("weather in", "")
+          .trim();
 
+        const weatherData = await getWeather(city);
+
+        // WeatherAPI format: weatherData.current.temp_c
+        const message = `${city} temperature is ${weatherData.current.temp_c}°C with ${weatherData.current.condition.text}`;
+
+        addJarvisMessage(message);
+        speak(message);
+
+      } catch (error) {
+        console.error("Weather Error:", error);
+        addJarvisMessage("Unable to fetch weather data.");
+      }
+    }
     else {
       try {
 
@@ -330,91 +377,122 @@ function App() {
     });
   }, [messages]);
 
+  const S = {
+    wrap: { minHeight: "100vh", background: "#070503", padding: "20px", fontFamily: "'Courier New', monospace", position: "relative" },
+    gridBg: { position: "fixed", inset: 0, backgroundImage: "linear-gradient(rgba(220,160,50,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(220,160,50,0.05) 1px, transparent 1px)", backgroundSize: "32px 32px", pointerEvents: "none", zIndex: 0 },
+    inner: { position: "relative", zIndex: 1, maxWidth: "720px", margin: "0 auto" },
+    hdr: { display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "18px", paddingBottom: "14px", borderBottom: "0.5px solid #3d2e10" },
+    hdrLeft: { display: "flex", alignItems: "center", gap: "14px" },
+    hexOuter: { width: "38px", height: "38px", background: "#e0a030", clipPath: "polygon(50% 0%,100% 25%,100% 75%,50% 100%,0% 75%,0% 25%)", display: "flex", alignItems: "center", justifyContent: "center" },
+    hexInner: { width: "22px", height: "22px", background: "#070503", clipPath: "polygon(50% 0%,100% 25%,100% 75%,50% 100%,0% 75%,0% 25%)" },
+    brand: { color: "#f0b840", fontSize: "20px", letterSpacing: "6px", fontWeight: "700" },
+    brandSub: { color: "#8a6830", fontSize: "10px", letterSpacing: "3px", marginTop: "2px" },
+    hdrRight: { display: "flex", gap: "16px" },
+    statVal: { color: "#f0b840", fontSize: "16px", fontWeight: "700", textAlign: "right" },
+    statLbl: { color: "#7a5820", fontSize: "9px", letterSpacing: "2px", textAlign: "right" },
+    promptLine: { color: "#7a5820", fontSize: "11px", marginBottom: "10px", letterSpacing: "1px" },
+    promptSpan: { color: "#f0b840" },
+    chatWin: { background: "#050402", border: "0.5px solid #3d2e10", borderRadius: "8px", height: "360px", overflowY: "auto", padding: "14px", marginBottom: "14px", display: "flex", flexDirection: "column", gap: "10px" },
+    msgUser: { display: "flex", flexDirection: "column", alignItems: "flex-end" },
+    msgJarvis: { display: "flex", flexDirection: "column", alignItems: "flex-start" },
+    lblUser: { fontSize: "9px", letterSpacing: "3px", marginBottom: "3px", color: "#8a6830" },
+    lblJarvis: { fontSize: "9px", letterSpacing: "3px", marginBottom: "3px", color: "#c08828", display: "flex", alignItems: "center", gap: "6px" },
+    bubbleUser: { padding: "10px 14px", fontSize: "13px", lineHeight: "1.75", maxWidth: "82%", background: "#1f1608", border: "0.5px solid #5a3e18", borderRadius: "8px 2px 8px 8px", color: "#f5cc70" },
+    bubbleJarvis: { padding: "10px 14px", fontSize: "13px", lineHeight: "1.75", maxWidth: "82%", background: "#110e06", border: "0.5px solid #4a3414", borderRadius: "2px 8px 8px 8px", color: "#f0e0b0" },
+    irow: { display: "flex", gap: "8px", marginBottom: "12px" },
+    micBtn: { background: "transparent", border: "0.5px solid #5a3e18", color: "#c08828", width: "42px", borderRadius: "4px", cursor: "pointer", fontSize: "18px", flexShrink: 0 },
+    textInput: { flex: 1, background: "#050402", border: "0.5px solid #5a3e18", borderRadius: "4px", padding: "10px 13px", fontSize: "13px", color: "#f0e0b0", fontFamily: "'Courier New', monospace", outline: "none" },
+    execBtn: { background: "#e0a030", border: "0.5px solid #e0a030", color: "#070503", borderRadius: "4px", padding: "10px 18px", fontSize: "10px", fontFamily: "'Courier New', monospace", letterSpacing: "2px", fontWeight: "700", cursor: "pointer", flexShrink: 0 },
+    ftr: { display: "flex", justifyContent: "space-between", alignItems: "center" },
+    ftrLeft: { display: "flex", gap: "20px" },
+    ftrInfo: { fontSize: "9px", color: "#4a3010", letterSpacing: "2px" },
+    ftrInfoSpan: { color: "#a07030" },
+    dlBtn: { background: "transparent", border: "0.5px solid #3d2e10", color: "#8a6830", fontSize: "10px", padding: "6px 12px", borderRadius: "4px", fontFamily: "'Courier New', monospace", cursor: "pointer", letterSpacing: "1px" },
+  };
+
   return (
-    <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center text-white px-4">
+    <div style={S.wrap}>
+      <div style={S.gridBg} />
+      <div style={S.inner}>
 
-      <h1 className="text-5xl font-bold mb-8">
-        Jarvis AI
-      </h1>
-
-      {/* STEP 5 YAHAN ADD KARNA HAI */}
-      <div
-        ref={chatRef}
-        className="w-[700px] h-[350px] bg-slate-900 rounded-xl p-4 overflow-y-auto border border-slate-700"
-      >
-
-        {messages.map((msg, index) => (
-          <div
-            key={index}
-            className={`mb-4 flex ${msg.sender === "user"
-              ? "justify-end"
-              : "justify-start"
-              }`}
-          >
-            <div className="flex flex-col max-w-[75%]">
-
-              <span className="text-xs text-gray-400 mb-1">
-                {msg.sender === "user"
-                  ? " You"
-                  : " Jarvis"}
-              </span>
-
-              <div
-                className={`px-4 py-3 rounded-2xl break-words ${msg.sender === "user"
-                  ? "bg-blue-600 text-white"
-                  : "bg-slate-700 text-white"
-                  }`}
-              >
-                {msg.text}
-              </div>
-
+        {/* header */}
+        <div style={S.hdr}>
+          <div style={S.hdrLeft}>
+            <div style={S.hexOuter}><div style={S.hexInner} /></div>
+            <div>
+              <div style={S.brand}>JARVIS</div>
+              <div style={S.brandSub}>autonomous intelligence system</div>
             </div>
           </div>
-        ))}
-
-
-        {loading && (
-          <div className="text-gray-400 italic mt-2">
-            Jarvis is typing...
+          <div style={S.hdrRight}>
+            <div>
+              <div style={S.statVal}>{new Date().toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: false })}</div>
+              <div style={S.statLbl}>local time</div>
+            </div>
+            <div>
+              <div style={S.statVal}>{String(messages.length).padStart(2, "0")}</div>
+              <div style={S.statLbl}>messages</div>
+            </div>
           </div>
-        )}
+        </div>
 
+        {/* session line */}
+        <div style={S.promptLine}>
+          {"// "}<span style={S.promptSpan}>rakheeb@jarvis</span>{" ~ active session"}
+        </div>
+
+        {/* chat window */}
+        <div ref={chatRef} style={S.chatWin}>
+          {messages.map((msg, i) => (
+            <div key={i} style={msg.sender === "user" ? S.msgUser : S.msgJarvis}>
+              <div style={msg.sender === "user" ? S.lblUser : S.lblJarvis}>
+                {msg.sender === "user" ? "YOU" : "JARVIS OUTPUT"}
+              </div>
+              <div style={msg.sender === "user" ? S.bubbleUser : S.bubbleJarvis}>
+                {msg.text}
+              </div>
+            </div>
+          ))}
+          {loading && (
+            <div style={{ display: "flex", gap: "4px", padding: "8px 0" }}>
+              {[0, 1, 2].map((i) => (
+                <span key={i} style={{ width: "5px", height: "5px", background: "#f0b840", borderRadius: "50%", display: "inline-block" }} />
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* input row */}
+        <div style={S.irow}>
+          <button style={S.micBtn} onClick={startListening} title="Voice input">🎙</button>
+          <input
+            style={S.textInput}
+            type="text"
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && input.trim()) {
+                handleCommand(input);
+                setInput("");
+              }
+            }}
+            placeholder="$ enter command..."
+          />
+          <button style={S.execBtn} onClick={() => { if (input.trim()) { handleCommand(input); setInput(""); } }}>
+            SEND
+          </button>
+        </div>
+
+        {/* footer */}
+        <div style={S.ftr}>
+          <div style={S.ftrLeft}>
+            <div style={S.ftrInfo}>build <span style={S.ftrInfoSpan}>v3.1.0</span></div>
+            <div style={S.ftrInfo}>status <span style={S.ftrInfoSpan}>online</span></div>
+          </div>
+          <button style={S.dlBtn} onClick={downloadChat}>↓ export log</button>
+        </div>
 
       </div>
-
-      <button
-        onClick={startListening}
-        className="mt-4 bg-blue-600 hover:bg-blue-700 px-6 py-3 rounded-xl"
-      >
-        Start Listening
-      </button>
-
-      <div className="mt-8 flex gap-3">
-        <input
-          type="text"
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" && input.trim()) {
-              handleCommand(input);
-              setInput("");
-            }
-          }}
-          placeholder="Message Jarvis..."
-          className="w-80 px-4 py-3 rounded-xl bg-white text-black"
-        />
-
-        <button
-          onClick={() => {
-            handleCommand(input);
-            setInput("");
-          }}
-          className="bg-green-600 hover:bg-green-700 px-5 py-3 rounded-xl"
-        >
-          Send
-        </button>
-      </div>
-
     </div>
   );
 }
