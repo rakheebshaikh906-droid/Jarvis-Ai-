@@ -1,7 +1,8 @@
-const { contextBridge, ipcRenderer } = require("electron");
 
-console.log("Preload Loaded");
 
-contextBridge.exposeInMainWorld("electronAPI", {
-    openApp: (appName) => ipcRenderer.invoke("open-app", appName),
+// preload.js
+const { contextBridge, ipcRenderer } = require('electron');
+
+contextBridge.exposeInMainWorld('electronAPI', {
+    getRamInfo: () => ipcRenderer.invoke('get-ram-info'),
 });

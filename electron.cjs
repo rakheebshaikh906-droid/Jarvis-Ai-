@@ -2,6 +2,8 @@ const { app, BrowserWindow, ipcMain } = require("electron");
 const { exec } = require("child_process");
 const path = require("path");
 
+const si = require("systeminformation");
+
 function createWindow() {
     const win = new BrowserWindow({
         width: 1200,
@@ -57,6 +59,18 @@ ipcMain.handle("open-app", async (event, appName) => {
         default:
             console.log("Unknown App:", appName);
     }
+});
+
+ipcMain.handle("get-ram-info", async () => {
+
+    const mem = await si.mem();
+
+    return {
+        totalRam: (mem.total / 1024 / 1024 / 1024).toFixed(1),
+        usedRam: (mem.used / 1024 / 1024 / 1024).toFixed(1),
+        ramPercent: ((mem.used / mem.total) * 100).toFixed(1)
+    };
+
 });
 
 app.on("window-all-closed", () => {

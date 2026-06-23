@@ -74,7 +74,7 @@ export default function Sidebar({ activeId, onSelect, onCommand, lastCommand }) 
                     <span className="text-[10px]" style={{ color: "var(--jarvis-gold-dimmer)" }}>×</span>
                 </div>
                 <div className="text-[11px] leading-relaxed" style={{ color: "#3ddc6e" }}>
-                    rakheeb@jarvis:~$<span className="opacity-70"> {lastCommand}</span>
+                    rakheebShaikh@jarvis:~$<span className="opacity-70"> {lastCommand}</span>
                     <span className="inline-block w-[6px] h-[12px] ml-1 align-middle" style={{ background: "#3ddc6e", animation: "jarvis-typing 1s steps(2) infinite" }} />
                 </div>
             </div>

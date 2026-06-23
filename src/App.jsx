@@ -28,6 +28,7 @@ function App() {
   const [clock, setClock] = useState(
     new Date().toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: false })
   );
+  const [ramInfo, setRamInfo] = useState(null);
 
   // live clock, matches the screenshot's "local time" stat
   useEffect(() => {
@@ -80,6 +81,28 @@ function App() {
     a.click();
     URL.revokeObjectURL(url);
   };
+
+  useEffect(() => {
+
+    if (!window.electronAPI?.getRamInfo)
+      return;
+
+    const loadRam = async () => {
+
+      const data =
+        await window.electronAPI.getRamInfo();
+
+      setRamInfo(data);
+    };
+
+    loadRam();
+
+    const interval =
+      setInterval(loadRam, 5000);
+
+    return () => clearInterval(interval);
+
+  }, []);
 
   const handleCommand = async (text) => {
     setMessages((prev) => [
@@ -195,15 +218,35 @@ function App() {
         speak(`Okay, I'll remember that ${key} is ${value}`);
       }
     } else if (cmd.startsWith("what is my")) {
-      const key = cmd.replace("what is my", "").replace("?", "").trim();
-      const memories = JSON.parse(localStorage.getItem("memories")) || {};
+
+      const key = ("my " + cmd
+        .replace("what is my", "")
+        .replace("?", "")
+        .trim())
+        .toLowerCase();
+
+      const memories =
+        JSON.parse(localStorage.getItem("memories")) || {};
 
       if (memories[key]) {
-        addJarvisMessage(`Your ${key} is ${memories[key]}`);
-        speak(`Your ${key} is ${memories[key]}`);
+
+        addJarvisMessage(
+          `Your ${key.replace("my ", "")} is ${memories[key]}`
+        );
+
+        speak(
+          `Your ${key.replace("my ", "")} is ${memories[key]}`
+        );
+
       } else {
-        addJarvisMessage(`I don't know your ${key} yet.`);
-        speak(`I don't know your ${key} yet.`);
+
+        addJarvisMessage(
+          `I don't know your ${key.replace("my ", "")} yet.`
+        );
+
+        speak(
+          `I don't know your ${key.replace("my ", "")} yet.`
+        );
       }
     } else if (cmd.includes("weather in")) {
       try {
@@ -229,7 +272,7 @@ function App() {
         setLoading(false);
         console.log(error);
         if (error?.status === 429 || error?.message?.includes("429")) {
-          addJarvisMessage("Rate limit hit. Thodi der baad try karo.");
+          addJarvisMessage("Gemini limit reached. Please wait 1 minute and try again.");
         } else {
           addJarvisMessage("Gemini se response nahi mil paya. Try again.");
         }
@@ -324,7 +367,7 @@ function App() {
           </div>
 
           <div className="flex flex-col gap-5 w-full lg:w-72 shrink-0">
-            <SystemMonitor />
+            <SystemMonitor ramInfo={ramInfo} />
             <QuickCommands onRun={handleQuickCommand} />
             <AICore />
           </div>

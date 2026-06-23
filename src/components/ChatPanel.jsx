@@ -11,7 +11,7 @@ export default function ChatPanel({ messages, loading, chatRef }) {
         >
             <div className="text-[11px] mb-3 tracking-wide" style={{ color: "var(--jarvis-gold-dim)" }}>
                 {"// "}
-                <span style={{ color: "var(--jarvis-gold)" }}>rakheeb@jarvis</span>
+                <span style={{ color: "var(--jarvis-gold)" }}>rakheebShaikh@jarvis</span>
                 {" ~ active session"}
             </div>
 
