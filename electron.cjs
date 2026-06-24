@@ -16,7 +16,7 @@ function createWindow() {
         },
     });
 
-    win.loadURL("http://localhost:5173");
+    win.loadURL("http://localhost:5173/");
 
     // Debug ke liye
     win.webContents.openDevTools();
@@ -69,6 +69,21 @@ ipcMain.handle("get-ram-info", async () => {
         totalRam: (mem.total / 1024 / 1024 / 1024).toFixed(1),
         usedRam: (mem.used / 1024 / 1024 / 1024).toFixed(1),
         ramPercent: ((mem.used / mem.total) * 100).toFixed(1)
+    };
+
+});
+
+ipcMain.handle("get-disk-info", async () => {
+
+    const disks = await si.fsSize();
+
+
+    const disk = disks[0];
+
+    return {
+        totalDisk: (disk.size / 1024 / 1024 / 1024).toFixed(1),
+        usedDisk: (disk.used / 1024 / 1024 / 1024).toFixed(1),
+        diskPercent: disk.use.toFixed(1)
     };
 
 });

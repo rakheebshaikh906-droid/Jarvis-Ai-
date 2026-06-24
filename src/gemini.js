@@ -6,7 +6,7 @@ const ai = new GoogleGenAI({
 
 export async function askGemini(prompt) {
     const response = await ai.models.generateContent({
-        model: "gemini-2.5-flash",
+        model: "gemini-2.0-flash",
         contents: `
       You are Jarvis AI.
       Keep answers concise.

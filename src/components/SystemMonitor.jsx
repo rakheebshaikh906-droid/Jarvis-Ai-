@@ -5,7 +5,7 @@ import { Cpu, MemoryStick, HardDrive, Wifi } from "lucide-react";
 const R = 36;
 const CIRC = 2 * Math.PI * R;
 
-export default function SystemMonitor({ ramInfo }) {
+export default function SystemMonitor({ ramInfo, diskInfo }) {
     // Decorative, gently animated mock telemetry — real OS metrics aren't
     // exposed to the browser sandbox, so values drift subtly for a "live" feel.
     const [cpu, setCpu] = useState(42);
@@ -73,7 +73,16 @@ export default function SystemMonitor({ ramInfo }) {
                         }
                         pct={ramInfo ? ramInfo.ramPercent : 0}
                     />
-                    <Stat icon={HardDrive} label="DISK" value="128 GB / 256 GB" pct={50} />
+                    <Stat
+                        icon={HardDrive}
+                        label="DISK"
+                        value={
+                            diskInfo
+                                ? `${diskInfo.usedDisk} GB / ${diskInfo.totalDisk} GB`
+                                : "Loading..."
+                        }
+                        pct={diskInfo ? diskInfo.diskPercent : 0}
+                    />
                     <div className="flex items-center justify-between">
                         <span className="flex items-center gap-1.5 text-[10px]" style={{ color: "#cdb985" }}>
                             <Wifi size={12} style={{ color: "var(--jarvis-gold)" }} />

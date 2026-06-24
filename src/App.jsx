@@ -29,6 +29,7 @@ function App() {
     new Date().toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: false })
   );
   const [ramInfo, setRamInfo] = useState(null);
+  const [diskInfo, setDiskInfo] = useState(null);
 
   // live clock, matches the screenshot's "local time" stat
   useEffect(() => {
@@ -99,6 +100,29 @@ function App() {
 
     const interval =
       setInterval(loadRam, 5000);
+
+    return () => clearInterval(interval);
+
+  }, []);
+  useEffect(() => {
+
+    if (!window.electronAPI?.getDiskInfo)
+      return;
+
+    const loadDisk = async () => {
+
+      const data =
+        await window.electronAPI.getDiskInfo();
+
+      console.log("DISK DATA:", data);
+
+      setDiskInfo(data);
+    };
+
+    loadDisk();
+
+    const interval =
+      setInterval(loadDisk, 5000);
 
     return () => clearInterval(interval);
 
@@ -272,6 +296,7 @@ function App() {
         setLoading(false);
         console.log(error);
         if (error?.status === 429 || error?.message?.includes("429")) {
+          await new Promise(r => setTimeout(r, 3000));
           addJarvisMessage("Gemini limit reached. Please wait 1 minute and try again.");
         } else {
           addJarvisMessage("Gemini se response nahi mil paya. Try again.");
@@ -367,7 +392,10 @@ function App() {
           </div>
 
           <div className="flex flex-col gap-5 w-full lg:w-72 shrink-0">
-            <SystemMonitor ramInfo={ramInfo} />
+            <SystemMonitor
+              ramInfo={ramInfo}
+              diskInfo={diskInfo}
+            />
             <QuickCommands onRun={handleQuickCommand} />
             <AICore />
           </div>
