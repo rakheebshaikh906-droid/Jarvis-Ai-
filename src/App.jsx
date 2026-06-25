@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { askGemini } from "./gemini";
 import { getWeather } from "./weather";
+import { askGroq } from "./groq";
 
 import ParticlesBackground from "./components/ParticlesBackground";
 import Header from "./components/Header";
@@ -10,6 +11,7 @@ import InputBar from "./components/InputBar";
 import SystemMonitor from "./components/SystemMonitor";
 import QuickCommands from "./components/QuickCommands";
 import AICore from "./components/AICore";
+
 
 function App() {
   const [command, setCommand] = useState("");
@@ -286,21 +288,44 @@ function App() {
         addJarvisMessage("Unable to fetch weather data.");
       }
     } else {
+      const recentHistory = messages
+        .slice(-4)
+        .map((msg) => ({
+          role: msg.sender === "user" ? "user" : "assistant",
+          text: msg.text || "",
+        }));
+
       try {
+
         setLoading(true);
-        const answer = await askGemini(text);
+
+        const answer = await askGeminiWithRetry(text, recentHistory);
+
         addJarvisMessage(answer);
         speak(answer);
-        setLoading(false);
+
       } catch (error) {
-        setLoading(false);
-        console.log(error);
-        if (error?.status === 429 || error?.message?.includes("429")) {
-          await new Promise(r => setTimeout(r, 3000));
-          addJarvisMessage("Gemini limit reached. Please wait 1 minute and try again.");
-        } else {
-          addJarvisMessage("Gemini se response nahi mil paya. Try again.");
+
+        console.log("Gemini Failed. Switching to Groq...");
+
+        try {
+
+          const answer = await askGroq(text, recentHistory);
+
+          addJarvisMessage(answer);
+          speak(answer);
+
+        } catch (groqError) {
+
+          console.error("GROQ ERROR:", groqError);
+
+          addJarvisMessage("Both AI services are currently unavailable.");
         }
+
+      } finally {
+
+        setLoading(false);
+
       }
     }
   };
