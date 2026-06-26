@@ -2,6 +2,8 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import { askGemini } from "./gemini";
 import { getWeather } from "./weather";
 import { askGroq } from "./groq";
+//import { searchWeb } from "./search";
+import { searchAndSummarize } from "./Search";
 
 import ParticlesBackground from "./components/ParticlesBackground";
 import Header from "./components/Header";
@@ -129,6 +131,41 @@ function App() {
     return () => clearInterval(interval);
 
   }, []);
+
+  function needsWebSearch(text) {
+    const query = text.toLowerCase();
+
+    const keywords = [
+      "latest",
+      "current",
+      "today",
+      "news",
+      "live",
+      "price",
+      "score",
+      "winner",
+      "won",
+      "president",
+      "prime minister",
+      "election",
+      "stock",
+      "bitcoin",
+      "gold",
+      "ipl",
+      "world cup",
+      "yesterday",
+      "this week",
+      "2024",
+      "2025",
+      "2026",
+      "2027",
+      "2028",
+      "2029"
+
+    ];
+
+    return keywords.some((word) => query.includes(word));
+  }
 
   const handleCommand = async (text) => {
     setMessages((prev) => [
@@ -287,7 +324,33 @@ function App() {
         console.error("Weather Error:", error);
         addJarvisMessage("Unable to fetch weather data.");
       }
-    } else {
+    } else if (
+      needsWebSearch(text)
+    ) {
+
+      try {
+
+        setLoading(true);
+
+        const answer = await searchAndSummarize(text);
+
+        addJarvisMessage(answer);
+
+        speak(answer);
+
+      } catch (err) {
+
+        console.error(err);
+
+        addJarvisMessage(
+          "Unable to search the internet."
+        );
+        setLoading(false);
+
+      }
+
+    }
+    else {
       const recentHistory = messages
         .slice(-4)
         .map((msg) => ({
