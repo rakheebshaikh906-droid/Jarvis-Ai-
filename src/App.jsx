@@ -13,6 +13,7 @@ import InputBar from "./components/InputBar";
 import SystemMonitor from "./components/SystemMonitor";
 import QuickCommands from "./components/QuickCommands";
 import AICore from "./components/AICore";
+import { getWikipediaData } from "./wikipedia";
 
 
 function App() {
@@ -59,6 +60,18 @@ function App() {
       },
     ]);
   };
+
+  function addRichMessage(data) {
+    setMessages((prev) => [
+      ...prev,
+      {
+        id: crypto.randomUUID(),
+        sender: "jarvis",
+        type: "rich",
+        ...data,
+      },
+    ]);
+  }
 
   const addWeatherMessage = (weatherData, city) => {
     setMessages((prev) => [
@@ -180,7 +193,20 @@ function App() {
 
     setCommand(cmd);
 
-    if (cmd.includes("youtube")) {
+    if (cmd === "test wiki") {
+
+      const wiki = await getWikipediaData("Cristiano Ronaldo");
+
+      addRichMessage({
+        title: wiki.title,
+        summary: wiki.summary,
+        image: wiki.image,
+        website: wiki.wikipedia,
+      });
+
+      return;
+    }
+    else if (cmd.includes("youtube")) {
       speak("Open YouTube");
       window.open("https://www.youtube.com", "_blank");
     } else if (cmd.includes("google")) {

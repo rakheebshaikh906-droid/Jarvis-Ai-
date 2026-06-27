@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import { Sparkles } from "lucide-react";
 import WeatherCard from "./WeatherCard";
+import RichResponseCard from "./RichResponseCard";
 
 export default function MessageBubble({ msg }) {
     const isUser = msg.sender === "user";
@@ -13,6 +14,16 @@ export default function MessageBubble({ msg }) {
                 className="flex flex-col items-start"
             >
                 <WeatherCard data={msg.weatherData} city={msg.city} />
+            </motion.div>
+        );
+    } if (msg.type === "rich") {
+        return (
+            <motion.div
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="flex flex-col items-start"
+            >
+                <RichResponseCard data={msg} />
             </motion.div>
         );
     }
