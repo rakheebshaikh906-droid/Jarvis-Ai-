@@ -410,7 +410,7 @@ function App() {
 
         addJarvisMessage(answer);
 
-        speak(answer);
+
 
       } catch (err) {
 
@@ -450,7 +450,7 @@ function App() {
           const answer = await askGroq(text, recentHistory);
 
           addJarvisMessage(answer);
-          speak(answer);
+
 
         } catch (groqError) {
 
@@ -527,13 +527,15 @@ function App() {
   };
 
   return (
-    <div className="min-h-screen relative p-4 md:p-5" style={{ background: "var(--jarvis-bg)" }}>
+    <div
+      className="min-h-screen relative p-4 md:p-5"
+      style={{ background: "var(--jarvis-bg)" }}
+    >
       <ParticlesBackground />
-
-      <div className="relative z-10 max-w-[1400px] mx-auto">
+      <div className="relative z-10 max-w-[1400px] mx-auto h-full flex flex-col">
         <Header messageCount={messages.length} time={clock} />
 
-        <div className="flex flex-col lg:flex-row gap-5">
+        <div className="flex-1 flex flex-col lg:flex-row gap-4 min-h-0">
           <Sidebar
             activeId={activeNav}
             onSelect={setActiveNav}

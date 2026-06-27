@@ -2,8 +2,18 @@ import { motion } from "framer-motion";
 import { Sparkles } from "lucide-react";
 import WeatherCard from "./WeatherCard";
 import RichResponseCard from "./RichResponseCard";
+import { Volume2, Square, Copy, Check } from "lucide-react";
+import { useState } from "react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
+import { oneDark } from "react-syntax-highlighter/dist/esm/styles/prism";
 
 export default function MessageBubble({ msg }) {
+
+    const [copied, setCopied] = useState(false);
+    const [speaking, setSpeaking] = useState(false);
+
     const isUser = msg.sender === "user";
 
     if (msg.type === "weather") {
@@ -27,6 +37,46 @@ export default function MessageBubble({ msg }) {
             </motion.div>
         );
     }
+
+    const handleSpeak = () => {
+
+        speechSynthesis.cancel();
+
+        const utterance = new SpeechSynthesisUtterance(msg.text);
+
+        utterance.rate = 1;
+
+        utterance.pitch = 1;
+
+        utterance.onstart = () => setSpeaking(true);
+
+        utterance.onend = () => setSpeaking(false);
+
+        speechSynthesis.speak(utterance);
+
+    };
+
+    const stopSpeaking = () => {
+
+        speechSynthesis.cancel();
+
+        setSpeaking(false);
+
+    };
+
+    const copyMessage = async () => {
+
+        await navigator.clipboard.writeText(msg.text);
+
+        setCopied(true);
+
+        setTimeout(() => {
+
+            setCopied(false);
+
+        }, 2000);
+
+    };
 
     return (
         <motion.div
@@ -60,8 +110,76 @@ export default function MessageBubble({ msg }) {
                         }
                 }
             >
-                {msg.text}
+
+
+                <ReactMarkdown
+                    remarkPlugins={[remarkGfm]}
+                    components={{
+                        code({ node, inline, className, children, ...props }) {
+
+                            const match = /language-(\w+)/.exec(className || "");
+
+                            return !inline && match ? (
+
+                                <SyntaxHighlighter
+                                    style={oneDark}
+                                    language={match[1]}
+                                    PreTag="div"
+                                    customStyle={{
+                                        borderRadius: "10px",
+                                        fontSize: "13px",
+                                        marginTop: "12px",
+                                        marginBottom: "12px",
+                                    }}
+                                    {...props}
+                                >
+                                    {String(children).replace(/\n$/, "")}
+                                </SyntaxHighlighter>
+
+                            ) : (
+
+                                <code
+                                    className={className}
+                                    {...props}
+                                >
+                                    {children}
+                                </code>
+
+                            );
+                        },
+                    }}
+                >
+                    {msg.text}
+                </ReactMarkdown>
             </div>
+            {!isUser && (
+
+                <div className="flex gap-3 mt-2">
+
+                    <button
+                        onClick={speaking ? stopSpeaking : handleSpeak}
+                        className="p-2 rounded-lg transition-all hover:bg-[#2b1d09]"
+                    >
+                        {speaking ? (
+                            <Square size={18} />
+                        ) : (
+                            <Volume2 size={18} />
+                        )}
+                    </button>
+                    <button
+                        onClick={copyMessage}
+                        className="p-2 rounded-lg transition-all hover:bg-[#2b1d09]"
+                    >
+                        {copied ? (
+                            <Check size={18} />
+                        ) : (
+                            <Copy size={18} />
+                        )}
+                    </button>
+
+                </div>
+
+            )}
         </motion.div>
     );
 }
