@@ -7,7 +7,7 @@ export default function ChatPanel({ messages, loading, chatRef }) {
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.1 }}
-            className="glass-panel glow-border flex-1 flex flex-col p-4 min-w-0"
+            className="glass-panel glow-border flex-1 flex flex-col p-4 min-w-0 min-h-0"
         >
             <div className="text-[11px] mb-3 tracking-wide" style={{ color: "var(--jarvis-gold-dim)" }}>
                 {"// "}
@@ -17,7 +17,7 @@ export default function ChatPanel({ messages, loading, chatRef }) {
 
             <div
                 ref={chatRef}
-                className="jarvis-scroll relative flex-1 min-h-[320px] max-h-[420px] overflow-y-auto rounded-lg p-3.5 flex flex-col gap-3"
+                className="jarvis-scroll relative flex-1 min-h-0 overflow-y-auto rounded-lg p-3.5 flex flex-col gap-3"
                 style={{ background: "#050402", border: "0.5px solid var(--jarvis-gold-dimmer)" }}
             >
                 <div className="scan-sweep" />

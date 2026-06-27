@@ -532,10 +532,10 @@ function App() {
       style={{ background: "var(--jarvis-bg)" }}
     >
       <ParticlesBackground />
-      <div className="relative z-10 max-w-[1400px] mx-auto h-full flex flex-col">
+      <div className="relative z-10 max-w-[1400px] mx-auto">
         <Header messageCount={messages.length} time={clock} />
 
-        <div className="flex-1 flex flex-col lg:flex-row gap-4 min-h-0">
+        <div className="flex flex-col lg:flex-row gap-5">
           <Sidebar
             activeId={activeNav}
             onSelect={setActiveNav}

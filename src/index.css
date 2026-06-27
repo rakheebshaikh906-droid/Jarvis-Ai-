@@ -20,6 +20,9 @@ body,
 #root {
     margin: 0;
     padding: 0;
+    height: 100%;
+    width: 100%;
+
     background: var(--jarvis-bg);
     font-family: 'Courier New', ui-monospace, monospace;
     color: var(--jarvis-text);
