@@ -14,6 +14,7 @@ import SystemMonitor from "./components/SystemMonitor";
 import QuickCommands from "./components/QuickCommands";
 import AICore from "./components/AICore";
 import { getWikipediaData } from "./wikipedia";
+import { detectIntent } from "./brain/brain";
 
 
 function App() {
@@ -181,6 +182,9 @@ function App() {
   }
 
   const handleCommand = async (text) => {
+    const intent = detectIntent(text);
+
+    console.log(intent);
     setMessages((prev) => [
       ...prev,
       {
@@ -193,29 +197,17 @@ function App() {
 
     setCommand(cmd);
 
-    if (cmd === "test wiki") {
 
-      const wiki = await getWikipediaData("Cristiano Ronaldo");
-
-      addRichMessage({
-        title: wiki.title,
-        summary: wiki.summary,
-        image: wiki.image,
-        website: wiki.wikipedia,
-      });
-
-      return;
-    }
-    else if (cmd.includes("youtube")) {
+    if (cmd.includes(" youtube")) {
       speak("Open YouTube");
       window.open("https://www.youtube.com", "_blank");
-    } else if (cmd.includes("google")) {
+    } else if (cmd.includes(" google")) {
       speak("Open Google");
       window.open("https://www.google.com", "_blank");
     } else if (cmd.includes("github")) {
       speak("Open GitHub");
       window.open("https://github.com", "_blank");
-    } else if (cmd.includes("leetcode")) {
+    } else if (cmd.includes("  leetcode")) {
       speak("Open LeetCode");
       window.open("https://leetcode.com/u/rakheebshaikh906/", "_blank");
     } else if (cmd.includes("linkdin")) {
@@ -349,6 +341,62 @@ function App() {
       } catch (error) {
         console.error("Weather Error:", error);
         addJarvisMessage("Unable to fetch weather data.");
+      }
+    } else if (intent === "wiki") {
+
+      try {
+
+        setLoading(true);
+
+        let query = text
+          .replace(/^who is/i, "")
+
+
+          .replace(/^information about/i, "")
+          .replace(/^show me/i, "")
+
+          .trim();
+
+        const wiki = await getWikipediaData(query);
+
+        if (wiki) {
+
+          addRichMessage({
+            title: wiki.title,
+            summary: wiki.summary,
+            image: wiki.image,
+            website: wiki.wikipedia,
+          });
+
+          speak(`Here is information about ${wiki.title}`);
+
+        } else {
+
+          throw new Error("Wikipedia page not found");
+
+        }
+
+      } catch (error) {
+
+        console.log("Wikipedia not found. Falling back to AI...");
+
+        const recentHistory = messages
+          .slice(-4)
+          .map((msg) => ({
+            role: msg.sender === "user" ? "user" : "assistant",
+            text: msg.text || "",
+          }));
+
+        const answer = await askGroq(text, recentHistory);
+
+        addJarvisMessage(answer);
+
+        speak(answer);
+
+      } finally {
+
+        setLoading(false);
+
       }
     } else if (
       needsWebSearch(text)
