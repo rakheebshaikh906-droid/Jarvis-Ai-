@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Cpu, MemoryStick, HardDrive, Wifi } from "lucide-react";
 
-const R = 36;
+const R = 32;
 const CIRC = 2 * Math.PI * R;
 
 export default function SystemMonitor({ ramInfo, diskInfo }) {
@@ -32,37 +32,37 @@ export default function SystemMonitor({ ramInfo, diskInfo }) {
             initial={{ opacity: 0, x: 16 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.5, delay: 0.15 }}
-            className="glass-panel glow-border p-4"
+            className="glass-panel glow-border p-3"
         >
-            <div className="text-[11px] tracking-[2px] mb-3" style={{ color: "var(--jarvis-gold-dim)" }}>
+            <div className="text-[11px] tracking-[2px] mb-2" style={{ color: "var(--jarvis-gold-dim)" }}>
                 SYSTEM MONITOR
             </div>
 
-            <div className="flex items-center gap-4">
-                <div className="relative w-[88px] h-[88px] shrink-0">
-                    <svg width="88" height="88" viewBox="0 0 88 88">
-                        <circle cx="44" cy="44" r={R} fill="none" stroke="#241a08" strokeWidth="7" />
+            <div className="flex items-center gap-3">
+                <div className="relative w-[76px] h-[76px] shrink-0">
+                    <svg width="76" height="76" viewBox="0 0 76 76">
+                        <circle cx="38" cy="38" r={R} fill="none" stroke="#241a08" strokeWidth="6" />
                         <circle
                             className="gauge-ring"
-                            cx="44"
-                            cy="44"
+                            cx="38"
+                            cy="38"
                             r={R}
                             fill="none"
                             stroke="var(--jarvis-gold)"
-                            strokeWidth="7"
+                            strokeWidth="6"
                             strokeLinecap="round"
                             strokeDasharray={CIRC}
                             strokeDashoffset={offset}
-                            transform="rotate(-90 44 44)"
+                            transform="rotate(-90 38 38)"
                         />
                     </svg>
                     <div className="absolute inset-0 flex flex-col items-center justify-center">
-                        <span className="glow-text text-lg font-bold leading-none">{cpu}%</span>
+                        <span className="glow-text text-base font-bold leading-none">{cpu}%</span>
                         <span className="text-[8px] tracking-[2px]" style={{ color: "var(--jarvis-gold-dim)" }}>CPU</span>
                     </div>
                 </div>
 
-                <div className="flex-1 flex flex-col gap-2.5 min-w-0">
+                <div className="flex-1 flex flex-col gap-2 min-w-0">
                     <Stat
                         icon={MemoryStick}
                         label="RAM"

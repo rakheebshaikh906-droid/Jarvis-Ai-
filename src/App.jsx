@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from "react";
-import { askGemini } from "./gemini";
+import { askGemini, askGeminiWithRetry } from "./gemini";
 import { getWeather } from "./weather";
 import { askGroq } from "./groq";
 //import { searchWeb } from "./search";
@@ -15,6 +15,7 @@ import QuickCommands from "./components/QuickCommands";
 import AICore from "./components/AICore";
 import { getWikipediaData } from "./wikipedia";
 import { detectIntent } from "./brain/brain";
+
 
 
 function App() {
@@ -198,38 +199,38 @@ function App() {
     setCommand(cmd);
 
 
-    if (cmd.includes(" youtube")) {
+    if (cmd.includes("open youtube")) {
       speak("Open YouTube");
       window.open("https://www.youtube.com", "_blank");
-    } else if (cmd.includes(" google")) {
+    } else if (cmd.includes("open  google")) {
       speak("Open Google");
       window.open("https://www.google.com", "_blank");
-    } else if (cmd.includes("github")) {
+    } else if (cmd.includes(" open github")) {
       speak("Open GitHub");
       window.open("https://github.com", "_blank");
-    } else if (cmd.includes("  leetcode")) {
+    } else if (cmd.includes("open leetcode")) {
       speak("Open LeetCode");
       window.open("https://leetcode.com/u/rakheebshaikh906/", "_blank");
     } else if (cmd.includes("linkdin")) {
       speak("Open linkdin");
       window.open("https://www.linkedin.com/in/rakheeb-shaikh-54830b380", "_blank");
-    } else if (cmd.includes("calculator")) {
+    } else if (cmd.includes("open calculator")) {
       addJarvisMessage("Opening Calculator...");
       speak("Opening Calculator");
       window.electronAPI?.openApp("calculator");
-    } else if (cmd.includes("notepad")) {
+    } else if (cmd.includes("open notepad")) {
       addJarvisMessage("Opening Notepad...");
       speak("Opening Notepad");
       window.electronAPI?.openApp("notepad");
     } else if (cmd.includes("vscode")) {
       addJarvisMessage("Opening VS Code...");
       speak("Opening VS Code");
-      window.electronAPI?.openApp("vscode");
-    } else if (cmd.includes("chrome")) {
+      window.electronAPI?.openApp("open vscode");
+    } else if (cmd.includes("open chrome")) {
       addJarvisMessage("Opening Chrome...");
       speak("Opening Chrome");
       window.electronAPI?.openApp("chrome");
-    } else if (cmd.includes("explorer")) {
+    } else if (cmd.includes("open explorer")) {
       addJarvisMessage("Opening File Explorer...");
       speak("Opening File Explorer");
       window.electronAPI?.openApp("explorer");
@@ -528,22 +529,26 @@ function App() {
 
   return (
     <div
-      className="min-h-screen relative p-4 md:p-5"
+      className="h-screen overflow-hidden relative p-4 md:p-5"
       style={{ background: "var(--jarvis-bg)" }}
     >
       <ParticlesBackground />
-      <div className="relative z-10 max-w-[1400px] mx-auto">
-        <Header messageCount={messages.length} time={clock} />
+      <div className="relative z-10 max-w-[1400px] mx-auto h-full flex flex-col">
+        <div className="shrink-0">
+          <Header messageCount={messages.length} time={clock} />
+        </div>
 
-        <div className="flex flex-col lg:flex-row gap-5">
-          <Sidebar
-            activeId={activeNav}
-            onSelect={setActiveNav}
-            onCommand={handleCommand}
-            lastCommand={command || "awaiting input"}
-          />
+        <div className="flex flex-col lg:flex-row gap-5 flex-1 min-h-0 overflow-hidden mt-5">
+          <div className="no-scrollbar overflow-y-auto min-h-0 lg:shrink-0">
+            <Sidebar
+              activeId={activeNav}
+              onSelect={setActiveNav}
+              onCommand={handleCommand}
+              lastCommand={command || "awaiting input"}
+            />
+          </div>
 
-          <div className="flex-1 flex flex-col min-w-0">
+          <div className="flex-1 flex flex-col min-w-0 min-h-0 overflow-hidden">
             <ChatPanel messages={messages} loading={loading} chatRef={chatRef} />
             <InputBar
               input={input}
@@ -555,7 +560,7 @@ function App() {
             />
           </div>
 
-          <div className="flex flex-col gap-5 w-full lg:w-72 shrink-0">
+          <div className="no-scrollbar flex flex-col gap-3 w-full lg:w-72 shrink-0 min-h-0 overflow-y-auto">
             <SystemMonitor
               ramInfo={ramInfo}
               diskInfo={diskInfo}

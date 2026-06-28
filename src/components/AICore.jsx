@@ -6,14 +6,14 @@ export default function AICore() {
             initial={{ opacity: 0, x: 16 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.5, delay: 0.25 }}
-            className="glass-panel glow-border p-4 flex-1 flex flex-col"
+            className="glass-panel glow-border p-3 flex flex-col shrink-0"
         >
-            <div className="text-[11px] tracking-[2px] mb-3" style={{ color: "var(--jarvis-gold-dim)" }}>
+            <div className="text-[11px] tracking-[2px] mb-2" style={{ color: "var(--jarvis-gold-dim)" }}>
                 JARVIS AI CORE
             </div>
 
-            <div className="relative flex-1 min-h-[140px] flex items-center justify-center">
-                <svg viewBox="0 0 160 160" className="w-full max-w-[160px]">
+            <div className="relative flex items-center justify-center" style={{ height: "110px" }}>
+                <svg viewBox="0 0 160 160" className="w-full max-w-[110px]">
                     <defs>
                         <radialGradient id="coreGlow" cx="50%" cy="50%" r="50%">
                             <stop offset="0%" stopColor="#ffe9b0" stopOpacity="1" />
@@ -37,7 +37,7 @@ export default function AICore() {
                 </svg>
             </div>
 
-            <div className="flex items-center justify-center gap-2 mt-2">
+            <div className="flex items-center justify-center gap-2 mt-1">
                 <span className="w-1.5 h-1.5 rounded-full glow-dot" style={{ background: "#3ddc6e", color: "#3ddc6e" }} />
                 <span className="text-[10px] tracking-[2px]" style={{ color: "#7adf99" }}>AI CORE ACTIVE</span>
             </div>
