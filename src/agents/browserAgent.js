@@ -21,6 +21,7 @@ export function handleBrowserCommand(text) {
     else if (command.includes("google")) {
         website = "google";
         query = command
+            .replace("open google and search", "")
             .replace("search", "")
             .replace("on google", "")
             .replace("google", "")

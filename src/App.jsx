@@ -201,14 +201,11 @@ function App() {
     setCommand(cmd);
 
     const browserResult = handleBrowserCommand(text);
-
     if (browserResult) {
       window.open(browserResult.url, "_blank");
-
       addJarvisMessage(
         `Opening ${browserResult.website} and searching "${browserResult.query}"`
       );
-
       return;
     } else if (cmd.includes("open youtube")) {
       speak("Open YouTube");
