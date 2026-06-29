@@ -15,6 +15,7 @@ import QuickCommands from "./components/QuickCommands";
 import AICore from "./components/AICore";
 import { getWikipediaData } from "./wikipedia";
 import { detectIntent } from "./brain/brain";
+import { handleBrowserCommand } from "./agents/browserAgent";
 
 
 
@@ -196,10 +197,20 @@ function App() {
     ]);
     const cmd = text.toLowerCase();
 
+
     setCommand(cmd);
 
+    const browserResult = handleBrowserCommand(text);
 
-    if (cmd.includes("open youtube")) {
+    if (browserResult) {
+      window.open(browserResult.url, "_blank");
+
+      addJarvisMessage(
+        `Opening ${browserResult.website} and searching "${browserResult.query}"`
+      );
+
+      return;
+    } else if (cmd.includes("open youtube")) {
       speak("Open YouTube");
       window.open("https://www.youtube.com", "_blank");
     } else if (cmd.includes("open  google")) {
