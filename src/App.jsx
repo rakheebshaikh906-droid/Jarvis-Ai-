@@ -203,9 +203,21 @@ function App() {
     const browserResult = handleBrowserCommand(text);
     if (browserResult) {
       window.open(browserResult.url, "_blank");
-      addJarvisMessage(
-        `Opening ${browserResult.website} and searching "${browserResult.query}"`
-      );
+
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: crypto.randomUUID(),
+          sender: "jarvis",
+          type: "browser",
+
+          website: browserResult.website,
+          action: browserResult.action,
+          query: browserResult.query,
+
+          text: browserResult.message,
+        },
+      ]);
       return;
     } else if (cmd.includes("open youtube")) {
       speak("Open YouTube");

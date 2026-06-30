@@ -26,7 +26,49 @@ export default function MessageBubble({ msg }) {
                 <WeatherCard data={msg.weatherData} city={msg.city} />
             </motion.div>
         );
-    } if (msg.type === "rich") {
+    } if (msg.type === "browser") {
+        return (
+            <motion.div
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="flex justify-start"
+            >
+                <div
+                    className="max-w-md w-full rounded-xl border p-4"
+                    style={{
+                        background: "#0d0a05",
+                        border: "1px solid #4a3414",
+                    }}
+                >
+                    <div
+                        className="text-sm font-bold mb-3"
+                        style={{ color: "var(--jarvis-gold)" }}
+                    >
+                        Browser Agent
+                    </div>
+
+                    <div className="space-y-2 text-sm">
+                        <p>
+                            <strong>Website:</strong> {msg.website}
+                        </p>
+
+                        <p>
+                            <strong>Action:</strong> {msg.action}
+                        </p>
+
+                        <p>
+                            <strong>Query:</strong> {msg.query}
+                        </p>
+
+                        <p style={{ color: "#e7dfcb" }}>
+                            task Completed.
+                        </p>
+                    </div>
+                </div>
+            </motion.div>
+        );
+    }
+    if (msg.type === "rich") {
         return (
             <motion.div
                 initial={{ opacity: 0, y: 8 }}
