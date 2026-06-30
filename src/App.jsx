@@ -16,6 +16,7 @@ import AICore from "./components/AICore";
 import { getWikipediaData } from "./wikipedia";
 import { detectIntent } from "./brain/brain";
 import { handleBrowserCommand } from "./agents/browserAgent";
+import { decideWebsite } from "./agents/decisionAgent";
 
 
 

@@ -1,78 +1,42 @@
+import { decideWebsite } from "./decisionAgent";
 import { generateSearchUrl } from "./urlGenerator";
 
 export function handleBrowserCommand(text) {
-    const command = text.toLowerCase().trim();
 
-    let website = "";
+    const decision = decideWebsite(text);
+
+    const website = decision.website;
+
     let action = "search";
-    let query = "";
 
-    // youtube
-    if (command.includes("youtube")) {
-        website = "youtube";
+    if (text.toLowerCase().includes("play"))
+        action = "play";
 
-        if (command.includes("play"))
-            action = "play";
-        else if (command.includes("watch"))
-            action = "watch";
+    else if (text.toLowerCase().includes("watch"))
+        action = "watch";
 
-        query = command
-            .replace("open youtube and search", "")
-            .replace("search", "")
-            .replace("play", "")
-            .replace("watch", "")
-            .replace("on youtube", "")
-            .replace("youtube", "")
-            .trim();
-    }
+    else if (text.toLowerCase().includes("learn"))
+        action = "learn";
 
-    // ---------- Google ----------
-    else if (command.includes("google")) {
-        website = "google";
+    else if (text.toLowerCase().includes("find"))
+        action = "find";
 
-        query = command
-            .replace("search", "")
-            .replace("on google", "")
-            .replace("google", "")
-            .trim();
-    }
+    const query = text
+        .replace(/open/gi, "")
+        .replace(/search/gi, "")
+        .replace(/find/gi, "")
+        .replace(/play/gi, "")
+        .replace(/watch/gi, "")
+        .replace(/learn/gi, "")
+        .replace(/youtube/gi, "")
+        .replace(/google/gi, "")
+        .replace(/github/gi, "")
+        .replace(/leetcode/gi, "")
+        .replace(/linkedin/gi, "")
+        .replace(/on/gi, "")
+        .trim();
 
-    // ---------- GitHub ----------
-    else if (command.includes("github")) {
-        website = "github";
-
-        query = command
-            .replace("search", "")
-            .replace("on github", "")
-            .replace("github", "")
-            .trim();
-    }
-
-    // ---------- LeetCode ----------
-    else if (command.includes("leetcode")) {
-        website = "leetcode";
-
-        query = command
-            .replace("search", "")
-            .replace("on leetcode", "")
-            .replace("leetcode", "")
-            .trim();
-    }
-
-    // ---------- LinkedIn ----------
-    else if (command.includes("linkedin")) {
-        website = "linkedin";
-        action = "find_jobs";
-
-        query = command
-            .replace("find", "")
-            .replace("jobs", "")
-            .replace("on linkedin", "")
-            .replace("linkedin", "")
-            .trim();
-    }
-
-    if (!website || !query)
+    if (!query)
         return null;
 
     const url = generateSearchUrl(website, query);
@@ -83,6 +47,8 @@ export function handleBrowserCommand(text) {
         query,
         url,
         success: true,
-        message: `${action.replace("_", " ")} "${query}" on ${website}`
+        category: decision.category,
+        reason: decision.reason,
+        message: `${action} "${query}" on ${website}`
     };
 }
