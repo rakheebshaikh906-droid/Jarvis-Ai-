@@ -79,6 +79,50 @@ export default function MessageBubble({ msg }) {
             </motion.div>
         );
     }
+    if (msg.type === "shopping") {
+
+        return (
+
+            <motion.div
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="flex justify-start"
+            >
+
+                <div
+                    className="max-w-md w-full rounded-xl border p-4"
+                    style={{
+                        background: "#0d0a05",
+                        border: "1px solid #4a3414",
+                    }}
+                >
+
+                    <div
+                        className="text-sm font-bold mb-3"
+                        style={{ color: "var(--jarvis-gold)" }}
+                    >
+                        Shopping Agent
+                    </div>
+
+                    <p>
+                        <strong>Category:</strong> {msg.category}
+                    </p>
+
+                    <p>
+                        <strong>Budget:</strong> ₹{msg.budget}
+                    </p>
+
+                    <p style={{ color: "#50fa7b" }}>
+                        Searching Amazon & Flipkart
+                    </p>
+
+                </div>
+
+            </motion.div>
+
+        );
+
+    }
 
     const handleSpeak = () => {
 

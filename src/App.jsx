@@ -17,6 +17,7 @@ import { getWikipediaData } from "./wikipedia";
 import { detectIntent } from "./brain/brain";
 import { handleBrowserCommand } from "./agents/browserAgent";
 import { decideWebsite } from "./agents/decisionAgent";
+import { handleShoppingCommand } from "./agents/shoppingAgent";
 
 
 
@@ -200,9 +201,32 @@ function App() {
 
 
     setCommand(cmd);
-
     const browserResult = handleBrowserCommand(text);
-    if (browserResult) {
+    const shoppingResult = handleShoppingCommand(text);
+
+    console.log(shoppingResult);
+
+    if (shoppingResult) {
+
+      window.open(shoppingResult.amazonUrl, "_blank");
+      window.open(shoppingResult.flipkartUrl, "_blank");
+
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: crypto.randomUUID(),
+          sender: "jarvis",
+          type: "shopping",
+
+          category: shoppingResult.category,
+          budget: shoppingResult.budget,
+
+          text: `Searching best ${shoppingResult.category} under ₹${shoppingResult.budget}`
+        }
+      ]);
+
+      return;
+    } else if (browserResult) {
       window.open(browserResult.url, "_blank");
 
       setMessages((prev) => [
