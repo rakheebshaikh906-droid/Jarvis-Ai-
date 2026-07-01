@@ -210,6 +210,8 @@ function App() {
 
       window.open(shoppingResult.amazonUrl, "_blank");
       window.open(shoppingResult.flipkartUrl, "_blank");
+      window.open(shoppingResult.blinKitUrl, "_blank");
+      window.open(shoppingResult.zomatoUrl, "_blank");
 
       setMessages((prev) => [
         ...prev,

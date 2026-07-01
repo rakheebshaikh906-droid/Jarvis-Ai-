@@ -14,7 +14,18 @@ export function handleShoppingCommand(text) {
         "monitor",
         "headphone",
         "earbuds",
-        "camera"
+        "camera",
+        "dishes",
+        "biryani",
+        "breakfast",
+        "chips",
+        "coldrink",
+        "snacks",
+        "pizza",
+        "rice",
+        "flights",
+        "hotels",
+
     ];
 
     const isShopping = shoppingWords.some(word =>
@@ -35,6 +46,8 @@ export function handleShoppingCommand(text) {
         .replace("best", "")
         .replace("buy", "")
         .replace("under", "")
+        .replace("at", "")
+        .replace("for", "")
         .replace(/\d+/g, "")
         .trim();
 
@@ -57,7 +70,10 @@ export function handleShoppingCommand(text) {
             `https://blinkit.com/search?q=${encodeURIComponent(
                 `${category} under ${budget || ""}`
             )}`,
-
+        zomatoUrl:
+            `https://www.zomato.com/search?query=${encodeURIComponent(
+                `${category} under ${budget || ""}`
+            )}`,
         success: true
     };
 }

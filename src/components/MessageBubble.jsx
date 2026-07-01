@@ -113,7 +113,7 @@ export default function MessageBubble({ msg }) {
                     </p>
 
                     <p style={{ color: "#50fa7b" }}>
-                        Searching Amazon & Flipkart
+                        Searching Amazon & Flipkart etc.
                     </p>
 
                 </div>
