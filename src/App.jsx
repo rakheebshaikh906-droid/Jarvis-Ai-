@@ -18,6 +18,7 @@ import { detectIntent } from "./brain/brain";
 import { handleBrowserCommand } from "./agents/browserAgent";
 import { decideWebsite } from "./agents/decisionAgent";
 import { handleShoppingCommand } from "./agents/shoppingAgent";
+import { getShoppingRecommendation } from "./agents/shoppingAI";
 
 
 
@@ -208,12 +209,17 @@ function App() {
 
     if (shoppingResult) {
 
+      const aiResult = await getShoppingRecommendation(
+        shoppingResult.category,
+        shoppingResult.budget
+      );
+
+      console.log(aiResult);
+
       window.open(shoppingResult.amazonUrl, "_blank");
       window.open(shoppingResult.flipkartUrl, "_blank");
-      window.open(shoppingResult.blinKitUrl, "_blank");
-      window.open(shoppingResult.zomatoUrl, "_blank");
 
-      setMessages((prev) => [
+      setMessages(prev => [
         ...prev,
         {
           id: crypto.randomUUID(),
@@ -223,7 +229,9 @@ function App() {
           category: shoppingResult.category,
           budget: shoppingResult.budget,
 
-          text: `Searching best ${shoppingResult.category} under ₹${shoppingResult.budget}`
+          recommendations: aiResult.products,
+
+          text: `Searching best ${shoppingResult.category}`
         }
       ]);
 

@@ -116,9 +116,123 @@ export default function MessageBubble({ msg }) {
                         Searching Amazon & Flipkart etc.
                     </p>
 
+                    {msg.recommendations?.map((item, index) => (
+
+                        <div
+                            key={index}
+                            className="mt-4 rounded-lg p-3"
+                            style={{
+                                border: "1px solid #4a3414",
+                                background: "#120d06"
+                            }}
+                        >
+
+                            <div
+                                className="flex justify-between items-center"
+                            >
+                                <h3
+                                    className="font-bold"
+                                    style={{ color: "var(--jarvis-gold)" }}
+                                >
+                                    {item.name}
+                                </h3>
+
+                                <span
+                                    className="text-xs px-2 py-1 rounded"
+                                    style={{
+                                        background: "#3a2a0a",
+                                        color: "#ffd76a"
+                                    }}
+                                >
+                                    {item.price}
+                                </span>
+                            </div>
+
+                            <div className="mt-3">
+
+                                <strong>Pros</strong>
+
+                                <ul className="mt-1">
+
+                                    {item.pros.map((pro, i) => (
+
+                                        <li key={i}> {pro}</li>
+
+                                    ))}
+
+                                </ul>
+
+                            </div>
+
+                            <div className="mt-3">
+
+                                <strong>Cons</strong>
+
+                                <ul className="mt-1">
+
+                                    {item.cons.map((con, i) => (
+
+                                        <li key={i}> {con}</li>
+
+                                    ))}
+
+                                </ul>
+
+                            </div>
+
+                            <div
+                                className="mt-3 text-sm"
+                                style={{ color: "#79ff9e" }}
+                            >
+                                {item.reason}
+                            </div>
+
+                            {/* ---------- ACTION BUTTONS ---------- */}
+
+                            <div className="flex gap-2 mt-4 flex-wrap">
+
+                                <button
+                                    onClick={() =>
+                                        window.open(
+                                            `https://www.amazon.in/s?k=${encodeURIComponent(item.name)}`
+                                        )
+                                    }
+                                    className="btn-ghost px-3 py-1 rounded border"
+                                >
+                                    Amazon
+                                </button>
+
+                                <button
+                                    onClick={() =>
+                                        window.open(
+                                            `https://www.flipkart.com/search?q=${encodeURIComponent(item.name)}`
+                                        )
+                                    }
+                                    className="btn-ghost px-3 py-1 rounded border"
+                                >
+                                    Flipkart
+                                </button>
+
+                                <button
+                                    onClick={() =>
+                                        window.open(
+                                            `https://www.youtube.com/results?search_query=${encodeURIComponent(item.name)}`
+                                        )
+                                    }
+                                    className="btn-ghost px-3 py-1 rounded border"
+                                >
+                                    Review
+                                </button>
+
+                            </div>
+
+                        </div>
+
+                    ))}
                 </div>
 
             </motion.div>
+
 
         );
 

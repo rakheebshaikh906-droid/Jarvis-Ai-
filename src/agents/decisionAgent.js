@@ -3,6 +3,7 @@ export function decideWebsite(text) {
 
     //  Courses, tutorials, videos
     if (
+        command.includes("open youtube and ") ||
         command.includes("course") ||
         command.includes("tutorial") ||
         command.includes("playlist") ||
