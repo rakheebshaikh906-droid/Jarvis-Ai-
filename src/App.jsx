@@ -19,6 +19,7 @@ import { handleBrowserCommand } from "./agents/browserAgent";
 import { decideWebsite } from "./agents/decisionAgent";
 import { handleShoppingCommand } from "./agents/shoppingAgent";
 import { getShoppingRecommendation } from "./agents/shoppingAI";
+import { handleJobCommand } from "./agents/jobAgent";
 
 
 
