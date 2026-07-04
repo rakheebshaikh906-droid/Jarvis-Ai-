@@ -20,8 +20,7 @@ import { decideWebsite } from "./agents/decisionAgent";
 import { handleShoppingCommand } from "./agents/shoppingAgent";
 import { getShoppingRecommendation } from "./agents/shoppingAI";
 import { handleJobCommand } from "./agents/jobAgent";
-
-
+import { getJobRecommendation } from "./agents/jobAI";
 
 function App() {
   const [command, setCommand] = useState("");
@@ -205,8 +204,10 @@ function App() {
     setCommand(cmd);
     const browserResult = handleBrowserCommand(text);
     const shoppingResult = handleShoppingCommand(text);
+    const jobResult = handleJobCommand(text);
 
     console.log(shoppingResult);
+    console.log(jobResult);
 
     if (shoppingResult) {
 
@@ -237,7 +238,35 @@ function App() {
       ]);
 
       return;
-    } else if (browserResult) {
+    } else if (jobResult) {
+
+      const aiResult = await getJobRecommendation(
+        jobResult.role,
+        jobResult.location
+      );
+      console.log(aiResult);
+
+      window.open(jobResult.linkedInUrl, "_blank");
+      window.open(jobResult.naukriUrl, "_blank");
+      window.open(jobResult.indeedUrl, "_blank");
+
+      setMessages(prev => [
+        ...prev,
+        {
+          id: crypto.randomUUID(),
+          sender: "jarvis",
+          type: "job",
+
+          role: jobResult.role,
+          location: jobResult.location,
+
+          aiData: aiResult
+        }
+      ]);
+
+      return;
+    }
+    else if (browserResult) {
       window.open(browserResult.url, "_blank");
 
       setMessages((prev) => [
@@ -631,3 +660,5 @@ function App() {
 }
 
 export default App;
+
+

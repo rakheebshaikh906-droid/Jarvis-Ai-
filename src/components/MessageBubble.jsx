@@ -238,6 +238,132 @@ export default function MessageBubble({ msg }) {
 
     }
 
+    if (msg.type === "job") {
+
+        const data = msg.aiData;
+
+        return (
+
+            <motion.div
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="flex justify-start"
+            >
+
+                <div
+                    className="max-w-xl w-full rounded-xl border p-4"
+                    style={{
+                        background: "#0d0a05",
+                        border: "1px solid #4a3414"
+                    }}
+                >
+
+                    <h2
+                        className="font-bold text-lg mb-3"
+                        style={{ color: "var(--jarvis-gold)" }}
+                    >
+                        AI Job Assistant
+                    </h2>
+
+                    <p><strong>Role:</strong> {data.role}</p>
+
+                    <p><strong>Location:</strong> {data.location}</p>
+
+                    <p><strong>Salary:</strong> {data.salary}</p>
+
+                    <div className="mt-4">
+
+                        <strong>Skills</strong>
+
+                        <ul>
+
+                            {data.skills.map((skill, i) => (
+
+                                <li key={i}> {skill}</li>
+
+                            ))}
+
+                        </ul>
+
+                    </div>
+
+                    <div className="mt-4">
+
+                        <strong>Interview Topics</strong>
+
+                        <ul>
+
+                            {data.interviewTopics.map((topic, i) => (
+
+                                <li key={i}> {topic}</li>
+
+                            ))}
+
+                        </ul>
+
+                    </div>
+
+                    <div className="mt-4">
+
+                        <strong>Tips</strong>
+
+                        <ul>
+
+                            {data.tips.map((tip, i) => (
+
+                                <li key={i}> {tip}</li>
+
+                            ))}
+
+                        </ul>
+
+                    </div>
+
+                    <div className="flex gap-2 mt-5 flex-wrap">
+
+                        <button
+                            className="btn-ghost px-3 py-2 rounded border"
+                            onClick={() =>
+                                window.open(
+                                    `https://www.linkedin.com/jobs/search/?keywords=${encodeURIComponent(msg.role)}&location=${encodeURIComponent(msg.location)}`
+                                )
+                            }
+                        >
+                            LinkedIn
+                        </button>
+
+                        <button
+                            className="btn-ghost px-3 py-2 rounded border"
+                            onClick={() =>
+                                window.open(
+                                    `https://www.naukri.com/${encodeURIComponent(msg.role)}-jobs-in-${encodeURIComponent(msg.location)}`
+                                )
+                            }
+                        >
+                            Naukri
+                        </button>
+
+                        <button
+                            className="btn-ghost px-3 py-2 rounded border"
+                            onClick={() =>
+                                window.open(
+                                    `https://in.indeed.com/jobs?q=${encodeURIComponent(msg.role)}&l=${encodeURIComponent(msg.location)}`
+                                )
+                            }
+                        >
+                            Indeed
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </motion.div>
+
+        );
+
+    }
+
     const handleSpeak = () => {
 
         speechSynthesis.cancel();
@@ -383,3 +509,4 @@ export default function MessageBubble({ msg }) {
         </motion.div>
     );
 }
+

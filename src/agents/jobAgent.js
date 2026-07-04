@@ -62,15 +62,3 @@ export function handleJobCommand(text) {
     };
 
 }
-
-console.log(
-    handleJobCommand("Find React Developer jobs in Pune")
-);
-
-console.log(
-    handleJobCommand("Java Backend jobs in Bangalore")
-);
-
-console.log(
-    handleJobCommand("Frontend internship in Hyderabad")
-);
