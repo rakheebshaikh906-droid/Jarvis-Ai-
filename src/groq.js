@@ -58,7 +58,7 @@ export async function askGroq(prompt, history = []) {
             model: "llama-3.3-70b-versatile",
             messages,
             temperature: 0.3,
-            max_tokens: 350,
+            max_tokens: 900,
         });
 
         return (

@@ -21,6 +21,7 @@ import { handleShoppingCommand } from "./agents/shoppingAgent";
 import { getShoppingRecommendation } from "./agents/shoppingAI";
 import { handleJobCommand } from "./agents/jobAgent";
 import { getJobRecommendation } from "./agents/jobAI";
+import { routeCommand } from "./agents/agentRouter";
 
 function App() {
   const [command, setCommand] = useState("");
@@ -207,6 +208,7 @@ function App() {
     const jobResult = handleJobCommand(text);
 
     console.log(shoppingResult);
+    console.log(browserResult);
     console.log(jobResult);
 
     if (shoppingResult) {
@@ -231,7 +233,7 @@ function App() {
           category: shoppingResult.category,
           budget: shoppingResult.budget,
 
-          recommendations: aiResult.products,
+          recommendations: aiResult.products ?? [],
 
           text: `Searching best ${shoppingResult.category}`
         }

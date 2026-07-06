@@ -10,25 +10,17 @@ A user wants to buy a ${category} under ₹${budget}.
 Recommend the best 3 products.
 
 Return ONLY valid JSON.
-Do not wrap the JSON inside markdown code fences.
-Also return
 
-amazonQuery
+Do not wrap the JSON inside markdown.
 
-flipkartQuery
-
-youtubeQuery
-
-{"products":[
+{
+  "products":[
     {
       "name":"",
       "price":"",
       "pros":[],
       "cons":[],
-      "reason":"",
-      "amazonQuery":"",
-      "flipkartQuery":"",
-      "youtubeQuery":""
+      "reason":""
     }
   ]
 }
@@ -55,7 +47,3 @@ youtubeQuery
 
     }
 }
-
-const result = await getShoppingRecommendation("laptop", "50000");
-
-console.log(result);
