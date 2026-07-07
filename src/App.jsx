@@ -22,6 +22,7 @@ import { getShoppingRecommendation } from "./agents/shoppingAI";
 import { handleJobCommand } from "./agents/jobAgent";
 import { getJobRecommendation } from "./agents/jobAI";
 import { routeCommand } from "./agents/agentRouter";
+import { handleMemoryCommand } from "./agents/memoryAgent";
 
 function App() {
   const [command, setCommand] = useState("");
@@ -203,6 +204,7 @@ function App() {
 
 
     setCommand(cmd);
+    const memoryResult = handleMemoryCommand(text);
     const browserResult = handleBrowserCommand(text);
     const shoppingResult = handleShoppingCommand(text);
     const jobResult = handleJobCommand(text);
@@ -211,7 +213,20 @@ function App() {
     console.log(browserResult);
     console.log(jobResult);
 
-    if (shoppingResult) {
+    if (memoryResult) {
+
+      setMessages(prev => [
+        ...prev,
+        {
+          id: crypto.randomUUID(),
+          sender: "jarvis",
+          type: "text",
+          text: memoryResult.message
+        }
+      ]);
+
+      return;
+    } else if (shoppingResult) {
 
       const aiResult = await getShoppingRecommendation(
         shoppingResult.category,
