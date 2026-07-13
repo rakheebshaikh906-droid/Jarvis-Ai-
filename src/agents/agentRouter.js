@@ -33,15 +33,3 @@ export function routeCommand(text) {
 
     return null;
 }
-
-console.log(
-    routeCommand("Best laptop under 50000")
-);
-
-console.log(
-    routeCommand("Find React Developer jobs in Pune")
-);
-
-console.log(
-    routeCommand("Search Java DSA on YouTube")
-);

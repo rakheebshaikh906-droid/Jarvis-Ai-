@@ -23,7 +23,8 @@ import { handleJobCommand } from "./agents/jobAgent";
 import { getJobRecommendation } from "./agents/jobAI";
 import { routeCommand } from "./agents/agentRouter";
 import { handleMemoryCommand } from "./agents/memoryAgent";
-
+import { handleReminderCommand } from "./agents/reminderAgent";
+import { scheduleReminder } from "./agents/reminderAgent";
 function App() {
   const [command, setCommand] = useState("");
   const [input, setInput] = useState("");
@@ -151,7 +152,26 @@ function App() {
 
     return () => clearInterval(interval);
 
+    if ("Notification" in window) {
+
+      Notification.requestPermission();
+
+    }
+    if (Notification.permission === "granted") {
+
+      new Notification("Jarvis Reminder", {
+
+        body: data.task,
+
+        icon: "/jarvis.png" // optional
+      });
+
+    }
+
+
   }, []);
+
+
 
   function needsWebSearch(text) {
     const query = text.toLowerCase();
@@ -208,6 +228,8 @@ function App() {
     const browserResult = handleBrowserCommand(text);
     const shoppingResult = handleShoppingCommand(text);
     const jobResult = handleJobCommand(text);
+    const reminderResult = handleReminderCommand(text);
+
 
     console.log(shoppingResult);
     console.log(browserResult);
@@ -226,7 +248,35 @@ function App() {
       ]);
 
       return;
-    } else if (shoppingResult) {
+    } else if (reminderResult) {
+
+      setMessages(prev => [
+        ...prev,
+        {
+          id: crypto.randomUUID(),
+          sender: "jarvis",
+          type: "text",
+          text: ` Reminder set for ${reminderResult.time} ${reminderResult.unit}.`
+        }
+      ]);
+
+      scheduleReminder(reminderResult, (data) => {
+
+        setMessages(prev => [
+          ...prev,
+          {
+            id: crypto.randomUUID(),
+            sender: "jarvis",
+            type: "text",
+            text: data.message
+          }
+        ]);
+
+      });
+
+      return;
+    }
+    else if (shoppingResult) {
 
       const aiResult = await getShoppingRecommendation(
         shoppingResult.category,

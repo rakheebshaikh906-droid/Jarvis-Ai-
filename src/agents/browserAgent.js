@@ -2,6 +2,29 @@ import { decideWebsite } from "./decisionAgent";
 import { generateSearchUrl } from "./urlGenerator";
 
 export function handleBrowserCommand(text) {
+    const command = text.toLowerCase();
+
+    const browserKeywords = [
+        "search",
+        "open",
+        "find",
+        "play",
+        "watch",
+        "learn",
+        "google",
+        "youtube",
+        "github",
+        "leetcode",
+        "linkedin"
+    ];
+
+    const isBrowserCommand = browserKeywords.some(keyword =>
+        command.includes(keyword)
+    );
+
+    if (!isBrowserCommand) {
+        return null;
+    }
 
     const decision = decideWebsite(text);
 
