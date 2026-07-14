@@ -157,16 +157,7 @@ function App() {
       Notification.requestPermission();
 
     }
-    if (Notification.permission === "granted") {
 
-      new Notification("Jarvis Reminder", {
-
-        body: data.task,
-
-        icon: "/jarvis.png" // optional
-      });
-
-    }
 
 
   }, []);
@@ -261,6 +252,17 @@ function App() {
       ]);
 
       scheduleReminder(reminderResult, (data) => {
+
+
+        if (Notification.permission === "granted") {
+
+          new Notification(" Jarvis Reminder", {
+            body: data.message
+
+          });
+          speak(data.message);
+
+        }
 
         setMessages(prev => [
           ...prev,
