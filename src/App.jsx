@@ -25,6 +25,8 @@ import { routeCommand } from "./agents/agentRouter";
 import { handleMemoryCommand } from "./agents/memoryAgent";
 import { handleReminderCommand } from "./agents/reminderAgent";
 import { scheduleReminder } from "./agents/reminderAgent";
+import { saveNote, getNotes, deleteNote } from "./agents/notesAgent";
+import { handleNotesCommand } from "./agents/notesAgent";
 function App() {
   const [command, setCommand] = useState("");
   const [input, setInput] = useState("");
@@ -220,6 +222,7 @@ function App() {
     const shoppingResult = handleShoppingCommand(text);
     const jobResult = handleJobCommand(text);
     const reminderResult = handleReminderCommand(text);
+    const notesResult = handleNotesCommand(text);
 
 
     console.log(shoppingResult);
@@ -277,7 +280,44 @@ function App() {
       });
 
       return;
+    } else if (notesResult) {
+
+      // Show Notes
+      if (notesResult.notes) {
+
+        const allNotes = notesResult.notes.length
+          ? notesResult.notes
+            .map((note, index) => `${index + 1}. ${note}`)
+            .join("\n")
+          : "No notes found.";
+
+        setMessages(prev => [
+          ...prev,
+          {
+            id: crypto.randomUUID(),
+            sender: "jarvis",
+            type: "text",
+            text: ` Your Notes\n\n${allNotes}`
+          }
+        ]);
+
+        return;
+      }
+
+      // Save/Delete Message
+      setMessages(prev => [
+        ...prev,
+        {
+          id: crypto.randomUUID(),
+          sender: "jarvis",
+          type: "text",
+          text: notesResult.message
+        }
+      ]);
+
+      return;
     }
+
     else if (shoppingResult) {
 
       const aiResult = await getShoppingRecommendation(
