@@ -1,10 +1,15 @@
 const { app, BrowserWindow, ipcMain } = require("electron");
 const { exec } = require("child_process");
 const path = require("path");
-
 const si = require("systeminformation");
 
+
+
+// CREATE JARVIS WINDOW
+
+
 function createWindow() {
+
     const win = new BrowserWindow({
         width: 1200,
         height: 800,
@@ -22,14 +27,26 @@ function createWindow() {
     win.webContents.openDevTools();
 }
 
+
+
+// ELECTRON READY
+
 app.whenReady().then(() => {
+
     createWindow();
+
 });
 
+
+// OPEN DESKTOP APPS
+
+
 ipcMain.handle("open-app", async (event, appName) => {
+
     console.log("Received:", appName);
 
     switch (appName) {
+
         case "calculator":
             console.log("Open Calculator");
             exec("calc");
@@ -44,6 +61,7 @@ ipcMain.handle("open-app", async (event, appName) => {
             console.log("Open VS Code");
             exec("code");
             break;
+
         case "chrome":
             exec("start chrome");
             break;
@@ -59,37 +77,176 @@ ipcMain.handle("open-app", async (event, appName) => {
         default:
             console.log("Unknown App:", appName);
     }
+
 });
+
+
+// RAM INFORMATION
 
 ipcMain.handle("get-ram-info", async () => {
 
     const mem = await si.mem();
 
     return {
-        totalRam: (mem.total / 1024 / 1024 / 1024).toFixed(1),
-        usedRam: (mem.used / 1024 / 1024 / 1024).toFixed(1),
-        ramPercent: ((mem.used / mem.total) * 100).toFixed(1)
+
+        totalRam:
+            (mem.total / 1024 / 1024 / 1024).toFixed(1),
+
+        usedRam:
+            (mem.used / 1024 / 1024 / 1024).toFixed(1),
+
+        ramPercent:
+            ((mem.used / mem.total) * 100).toFixed(1)
+
     };
 
 });
+
+
+
+// DISK INFORMATION
 
 ipcMain.handle("get-disk-info", async () => {
 
     const disks = await si.fsSize();
 
-
     const disk = disks[0];
 
     return {
-        totalDisk: (disk.size / 1024 / 1024 / 1024).toFixed(1),
-        usedDisk: (disk.used / 1024 / 1024 / 1024).toFixed(1),
-        diskPercent: disk.use.toFixed(1)
+
+        totalDisk:
+            (disk.size / 1024 / 1024 / 1024).toFixed(1),
+
+        usedDisk:
+            (disk.used / 1024 / 1024 / 1024).toFixed(1),
+
+        diskPercent:
+            disk.use.toFixed(1)
+
     };
 
 });
 
-app.on("window-all-closed", () => {
-    if (process.platform !== "darwin") {
-        app.quit();
+
+// PHONE AGENT - ANDROID ADB CONTROL
+
+
+ipcMain.handle("phone-command", async (event, action) => {
+
+    console.log("Phone command received:", action);
+
+    const adbPath = path.join(
+        process.env.LOCALAPPDATA,
+        "Android",
+        "Sdk",
+        "platform-tools",
+        "adb.exe"
+    );
+
+    let adbCommand;
+
+    switch (action) {
+
+        case "open_youtube":
+
+            adbCommand =
+                `"${adbPath}" shell am start ` +
+                `-a android.intent.action.VIEW ` +
+                `-d "https://www.youtube.com"`;
+
+            break;
+
+
+        case "open_google":
+
+            adbCommand =
+                `"${adbPath}" shell am start ` +
+                `-a android.intent.action.VIEW ` +
+                `-d "https://www.google.com"`;
+
+            break;
+
+
+        default:
+
+            console.log(
+                "Unknown phone action:",
+                action
+            );
+
+            return {
+
+                success: false,
+
+                message:
+                    "Unknown phone command"
+
+            };
     }
+
+
+    return new Promise((resolve) => {
+
+        exec(
+            adbCommand,
+            (error, stdout, stderr) => {
+
+                if (error) {
+
+                    console.error(
+                        "ADB Error:",
+                        error
+                    );
+
+                    resolve({
+
+                        success: false,
+
+                        message:
+                            error.message
+
+                    });
+
+                    return;
+                }
+
+
+                console.log(
+                    "ADB Output:",
+                    stdout
+                );
+
+
+                resolve({
+
+                    success: true,
+
+                    message:
+                        `${action} executed successfully`
+
+                });
+
+            }
+        );
+
+    });
+
 });
+
+// CLOSE ELECTRON
+
+
+app.on(
+    "window-all-closed",
+    () => {
+
+        if (
+            process.platform !== "darwin"
+        ) {
+
+            app.quit();
+
+        }
+
+    }
+);

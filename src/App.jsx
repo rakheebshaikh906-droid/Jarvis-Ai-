@@ -27,6 +27,7 @@ import { handleReminderCommand } from "./agents/reminderAgent";
 import { scheduleReminder } from "./agents/reminderAgent";
 import { saveNote, getNotes, deleteNote } from "./agents/notesAgent";
 import { handleNotesCommand } from "./agents/notesAgent";
+import { handlePhoneCommand } from "./agents/phoneAgent";
 function App() {
   const [command, setCommand] = useState("");
   const [input, setInput] = useState("");
@@ -223,6 +224,7 @@ function App() {
     const jobResult = handleJobCommand(text);
     const reminderResult = handleReminderCommand(text);
     const notesResult = handleNotesCommand(text);
+    const phoneResult = handlePhoneCommand(text);
 
 
     console.log(shoppingResult);
@@ -316,6 +318,27 @@ function App() {
       ]);
 
       return;
+    } else if (phoneResult) {
+
+      const result =
+        await window.electronAPI.sendPhoneCommand(
+          phoneResult.action
+        );
+
+      console.log("PHONE RESULT:", result);
+
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: crypto.randomUUID(),
+          sender: "jarvis",
+          text: result.success
+            ? phoneResult.message
+            : `Phone command failed: ${result.message}`,
+        },
+      ]);
+
+      return;
     }
 
     else if (shoppingResult) {
@@ -347,6 +370,7 @@ function App() {
       ]);
 
       return;
+
     } else if (jobResult) {
 
       const aiResult = await getJobRecommendation(

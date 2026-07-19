@@ -1,9 +1,8 @@
-
-
-// preload.js
-const { contextBridge, ipcRenderer } = require('electron');
+// preload.cjs
+const { contextBridge, ipcRenderer } = require("electron");
 
 contextBridge.exposeInMainWorld("electronAPI", {
+
     openApp: (appName) =>
         ipcRenderer.invoke("open-app", appName),
 
@@ -12,4 +11,9 @@ contextBridge.exposeInMainWorld("electronAPI", {
 
     getDiskInfo: () =>
         ipcRenderer.invoke("get-disk-info"),
+
+    // Laptop Jarvis -> Electron -> Android phone
+    sendPhoneCommand: (action) =>
+        ipcRenderer.invoke("phone-command", action),
+
 });
