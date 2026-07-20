@@ -23,6 +23,18 @@ function createWindow() {
 
     win.loadURL("http://localhost:5173/");
 
+    win.webContents.session.setPermissionRequestHandler(
+        (webContents, permission, callback) => {
+
+            if (permission === "media") {
+                console.log("Microphone permission granted");
+                callback(true);
+            } else {
+                callback(false);
+            }
+        }
+    );
+
     // Debug ke liye
     win.webContents.openDevTools();
 }
@@ -73,6 +85,7 @@ ipcMain.handle("open-app", async (event, appName) => {
         case "spotify":
             exec("start spotify");
             break;
+
 
         default:
             console.log("Unknown App:", appName);
@@ -163,6 +176,40 @@ ipcMain.handle("phone-command", async (event, action) => {
                 `"${adbPath}" shell am start ` +
                 `-a android.intent.action.VIEW ` +
                 `-d "https://www.google.com"`;
+
+            break;
+
+        case "open_gallery":
+
+            adbCommand =
+                `"${adbPath}" shell am start ` +
+                `-a android.intent.action.VIEW ` +
+                `-t "image/*"`;
+
+            break;
+        case "open_camera":
+
+            adbCommand =
+                `"${adbPath}" shell am start ` +
+                `-a android.media.action.IMAGE_CAPTURE`;
+
+            break;
+        case "open_instagram":
+
+            adbCommand =
+                `"${adbPath}" shell monkey ` +
+                `-p com.instagram.android ` +
+                `-c android.intent.category.LAUNCHER 1`;
+
+            break;
+
+
+        case "open_whatsapp":
+
+            adbCommand =
+                `"${adbPath}" shell monkey ` +
+                `-p com.whatsapp ` +
+                `-c android.intent.category.LAUNCHER 1`;
 
             break;
 
