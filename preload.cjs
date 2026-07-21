@@ -1,4 +1,3 @@
-// preload.cjs
 const { contextBridge, ipcRenderer } = require("electron");
 
 contextBridge.exposeInMainWorld("electronAPI", {
@@ -12,8 +11,19 @@ contextBridge.exposeInMainWorld("electronAPI", {
     getDiskInfo: () =>
         ipcRenderer.invoke("get-disk-info"),
 
-    // Laptop Jarvis -> Electron -> Android phone
-    sendPhoneCommand: (action) =>
-        ipcRenderer.invoke("phone-command", action),
+    // preload.cjs
+    sendPhoneCommand: (command) =>
+        ipcRenderer.invoke(
+            "phone-command",
+            command
+        ),
+
+    // NEW - send recorded audio to Electron
+    sendAudioForTranscription: (audioBuffer, mimeType) =>
+        ipcRenderer.invoke(
+            "transcribe-audio",
+            audioBuffer,
+            mimeType
+        ),
 
 });

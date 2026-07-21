@@ -1,14 +1,32 @@
-export function handlePhoneCommand(text) {
-    const command = text.toLowerCase().trim();
+export function handlePhoneCommand(command) {
 
-    // Phone command hai ya nahi
-    const isPhoneCommand =
-        command.includes("phone") ||
-        command.includes("mobile");
+    command = command
+        .toLowerCase()
+        .trim();
 
-    if (!isPhoneCommand) {
-        return null;
+
+    // CALL CONTACT
+
+    if (command.startsWith("call ")) {
+
+        const contactName = command
+            .replace(/^call\s+/i, "")
+            .trim();
+
+        console.log(
+            "CALL CONTACT DETECTED:",
+            contactName
+        );
+
+
+        return {
+            agent: "phone",
+            action: "call_contact",
+            contactName: contactName,
+            message: `Opening dialer for ${contactName}`
+        };
     }
+
 
     // YouTube
     if (

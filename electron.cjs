@@ -1,7 +1,23 @@
+
+
+require("dotenv").config();
+
 const { app, BrowserWindow, ipcMain } = require("electron");
-const { exec } = require("child_process");
+const { exec, spawn } = require("child_process");
 const path = require("path");
+const fs = require("fs");
+const os = require("os");
+const OpenAI = require("openai");
 const si = require("systeminformation");
+
+console.log(
+    "OpenAI API Key loaded:",
+    !!process.env.OPENAI_API_KEY
+);
+
+// const openai = new OpenAI({
+//     apiKey: process.env.OPENAI_API_KEY
+// });
 
 
 
@@ -144,9 +160,31 @@ ipcMain.handle("get-disk-info", async () => {
 // PHONE AGENT - ANDROID ADB CONTROL
 
 
-ipcMain.handle("phone-command", async (event, action) => {
+ipcMain.handle("phone-command", async (event, command) => {
 
-    console.log("Phone command received:", action);
+    // command string bhi ho sakta hai ya object bhi
+    const action =
+        typeof command === "string"
+            ? command
+            : command?.action;
+
+    const contactName =
+        typeof command === "object" && command !== null
+            ? command.contactName
+            : null;
+
+    console.log(
+        "Phone command received:",
+        action,
+        contactName || ""
+    );
+
+    if (!action) {
+        return {
+            success: false,
+            message: "Phone action missing"
+        };
+    }
 
     const adbPath = path.join(
         process.env.LOCALAPPDATA,
@@ -179,6 +217,7 @@ ipcMain.handle("phone-command", async (event, action) => {
 
             break;
 
+
         case "open_gallery":
 
             adbCommand =
@@ -187,6 +226,8 @@ ipcMain.handle("phone-command", async (event, action) => {
                 `-t "image/*"`;
 
             break;
+
+
         case "open_camera":
 
             adbCommand =
@@ -194,6 +235,8 @@ ipcMain.handle("phone-command", async (event, action) => {
                 `-a android.media.action.IMAGE_CAPTURE`;
 
             break;
+
+
         case "open_instagram":
 
             adbCommand =
@@ -214,6 +257,28 @@ ipcMain.handle("phone-command", async (event, action) => {
             break;
 
 
+        case "call_contact": {
+
+            if (!contactName) {
+                return {
+                    success: false,
+                    message: "Contact name missing"
+                };
+            }
+
+            const safeContactName =
+                contactName.replace(/"/g, '\\"');
+
+            adbCommand =
+                `"${adbPath}" shell am start ` +
+                `-n com.example.jarvismobile/.MainActivity ` +
+                `--es action call_contact ` +
+                `--es contactName "${safeContactName}"`;
+
+            break;
+        }
+
+
         default:
 
             console.log(
@@ -222,12 +287,8 @@ ipcMain.handle("phone-command", async (event, action) => {
             );
 
             return {
-
                 success: false,
-
-                message:
-                    "Unknown phone command"
-
+                message: `Unknown phone command: ${action}`
             };
     }
 
@@ -280,9 +341,178 @@ ipcMain.handle("phone-command", async (event, action) => {
 
 });
 
+ipcMain.handle(
+    "transcribe-audio",
+    async (event, audioBuffer, mimeType) => {
+
+        let tempFilePath = null;
+
+        try {
+
+            console.log("VOICE AUDIO RECEIVED");
+
+            const buffer = Buffer.from(audioBuffer);
+
+            console.log(
+                "Audio bytes:",
+                buffer.length
+            );
+
+            // Temporary recorded audio file
+            tempFilePath = path.join(
+                os.tmpdir(),
+                `jarvis-voice-${Date.now()}.webm`
+            );
+
+            fs.writeFileSync(
+                tempFilePath,
+                buffer
+            );
+
+            console.log(
+                "Running Local Whisper..."
+            );
+
+            // transcribe.py location
+            const pythonScript = path.join(
+                __dirname,
+                "transcribe.py"
+            );
+
+            const transcript = await new Promise(
+                (resolve, reject) => {
+
+                    const python = spawn(
+                        "python",
+                        [
+                            pythonScript,
+                            tempFilePath
+                        ]
+                    );
+
+                    let output = "";
+                    let errorOutput = "";
+
+                    python.stdout.on(
+                        "data",
+                        (data) => {
+
+                            output +=
+                                data.toString();
+
+                        }
+                    );
+
+                    python.stderr.on(
+                        "data",
+                        (data) => {
+
+                            errorOutput +=
+                                data.toString();
+
+                            console.log(
+                                "WHISPER:",
+                                data.toString()
+                            );
+
+                        }
+                    );
+
+                    python.on(
+                        "error",
+                        (error) => {
+
+                            reject(error);
+
+                        }
+                    );
+
+                    python.on(
+                        "close",
+                        (code) => {
+
+                            if (code !== 0) {
+
+                                reject(
+                                    new Error(
+                                        errorOutput ||
+                                        `Python exited with code ${code}`
+                                    )
+                                );
+
+                                return;
+                            }
+
+                            resolve(
+                                output.trim()
+                            );
+
+                        }
+                    );
+
+                }
+            );
+
+            console.log(
+                "LOCAL TRANSCRIPT:",
+                transcript
+            );
+
+            return {
+
+                success: true,
+
+                transcript:
+                    transcript
+
+            };
+
+        } catch (error) {
+
+            console.error(
+                "LOCAL TRANSCRIPTION ERROR:",
+                error
+            );
+
+            return {
+
+                success: false,
+
+                message:
+                    error.message
+
+            };
+
+        } finally {
+
+            // Delete temporary recording
+            if (
+                tempFilePath &&
+                fs.existsSync(tempFilePath)
+            ) {
+
+                try {
+
+                    fs.unlinkSync(
+                        tempFilePath
+                    );
+
+                } catch (error) {
+
+                    console.error(
+                        "Temp cleanup error:",
+                        error
+                    );
+
+                }
+
+            }
+
+        }
+
+    }
+);
 // CLOSE ELECTRON
-
-
 app.on(
     "window-all-closed",
     () => {

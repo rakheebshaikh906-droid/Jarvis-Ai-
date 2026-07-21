@@ -231,7 +231,36 @@ function App() {
     console.log(browserResult);
     console.log(jobResult);
 
-    if (memoryResult) {
+    if (phoneResult) {
+
+      console.log(
+        "PHONE AGENT RESULT:",
+        phoneResult
+      );
+
+      const result =
+        await window.electronAPI.sendPhoneCommand(
+          phoneResult
+        );
+
+      console.log(
+        "PHONE RESULT:",
+        result
+      );
+
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: crypto.randomUUID(),
+          sender: "jarvis",
+          text: result.success
+            ? phoneResult.message
+            : `Phone command failed: ${result.message}`,
+        },
+      ]);
+
+      return; // IMPORTANT
+    } else if (memoryResult) {
 
       setMessages(prev => [
         ...prev,
@@ -318,30 +347,7 @@ function App() {
       ]);
 
       return;
-    } else if (phoneResult) {
-
-      const result =
-        await window.electronAPI.sendPhoneCommand(
-          phoneResult.action
-        );
-
-      console.log("PHONE RESULT:", result);
-
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: crypto.randomUUID(),
-          sender: "jarvis",
-          text: result.success
-            ? phoneResult.message
-            : `Phone command failed: ${result.message}`,
-        },
-      ]);
-
-      return;
-    }
-
-    else if (shoppingResult) {
+    } else if (shoppingResult) {
 
       const aiResult = await getShoppingRecommendation(
         shoppingResult.category,
@@ -724,6 +730,90 @@ function App() {
     recognition.start();
   };
 
+  const startElectronRecording = async () => {
+    try {
+      console.log("Starting Electron microphone recording...");
+
+      // Microphone access
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: true,
+      });
+
+      const mediaRecorder = new MediaRecorder(stream);
+
+      const audioChunks = [];
+
+      mediaRecorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          audioChunks.push(event.data);
+        }
+      };
+
+      mediaRecorder.onstart = () => {
+        console.log(" RECORDING STARTED");
+        setIsListening(true);
+      };
+
+      mediaRecorder.onstop = async () => {
+
+        console.log(" RECORDING STOPPED");
+
+        const audioBlob = new Blob(audioChunks, {
+          type: mediaRecorder.mimeType || "audio/webm",
+        });
+
+        console.log("AUDIO BLOB:", audioBlob);
+        console.log("AUDIO SIZE:", audioBlob.size, "bytes");
+        console.log("AUDIO TYPE:", audioBlob.type);
+
+        // Audio Blob → ArrayBuffer
+        const arrayBuffer = await audioBlob.arrayBuffer();
+
+        // Send audio to Electron through preload
+        const result =
+          await window.electronAPI.sendAudioForTranscription(
+            arrayBuffer,
+            audioBlob.type
+          );
+
+        console.log(
+          "ELECTRON AUDIO RESULT:",
+          result
+        );
+        if (result.success && result.transcript) {
+
+          const transcript = result.transcript
+            .toLowerCase()
+            .trim();
+
+          console.log("VOICE COMMAND:", transcript);
+
+          await handleCommand(transcript);
+        }
+
+        setIsListening(false);
+
+        // Release microphone
+        stream.getTracks().forEach((track) => {
+          track.stop();
+        });
+      };
+
+      mediaRecorder.start();
+
+      // Temporary test: automatically stop after 5 seconds
+      setTimeout(() => {
+        if (mediaRecorder.state === "recording") {
+          mediaRecorder.stop();
+        }
+      }, 1700);
+
+    } catch (error) {
+      console.error("MIC RECORDING ERROR:", error);
+      setIsListening(false);
+    }
+  };
+
   useEffect(() => {
     chatRef.current?.scrollTo({
       top: chatRef.current.scrollHeight,
@@ -772,7 +862,8 @@ function App() {
               input={input}
               setInput={setInput}
               onSend={handleSend}
-              onMic={startListening}
+              // onMic={startListening}
+              onMic={startElectronRecording}
               isListening={isListening}
               onDownload={downloadChat}
             />
