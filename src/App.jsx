@@ -835,6 +835,11 @@ function App() {
     handleCommand(text);
   };
 
+  const isElectron = navigator.userAgent
+    .toLowerCase()
+    .includes("electron");
+
+
   return (
     <div
       className="h-screen overflow-hidden relative p-4 md:p-5"
@@ -858,12 +863,18 @@ function App() {
 
           <div className="flex-1 flex flex-col min-w-0 min-h-0 overflow-hidden">
             <ChatPanel messages={messages} loading={loading} chatRef={chatRef} />
+
             <InputBar
               input={input}
               setInput={setInput}
               onSend={handleSend}
-              // onMic={startListening}
-              onMic={startElectronRecording}
+
+              onMic={
+                isElectron
+                  ? startElectronRecording
+                  : startListening
+              }
+
               isListening={isListening}
               onDownload={downloadChat}
             />

@@ -18,12 +18,13 @@ model = WhisperModel(
 segments, info = model.transcribe(
     audio_path,
     beam_size=5,
+    language="en",
     initial_prompt=(
-        "Jarvis voice assistant commands. "
-        "Common commands include: open WhatsApp on my phone, "
-        "open Instagram on my phone, open YouTube on my phone, "
-        "open Google on my phone, open Gallery on my phone, "
-        "open Camera on my phone."
+        "This is a Jarvis voice assistant. "
+        "Commands include: Call Abbu, Call Ashu, Call Sahil, "
+        "open YouTube on my phone, open WhatsApp on my phone, "
+        "open Instagram on my phone, open Camera on my phone, "
+        "open Gallery on my phone."
     )
 )
 
