@@ -20,6 +20,211 @@ console.log(
 // });
 
 
+let whisperProcess = null;
+let whisperReady = false;
+let pendingTranscription = null;
+
+function startWhisper() {
+
+    if (whisperProcess) {
+        return;
+    }
+
+    const scriptPath = path.join(
+        __dirname,
+        "transcribe.py"
+    );
+
+    console.log(
+        "Starting persistent Whisper..."
+    );
+
+    whisperProcess = spawn(
+        "python",
+        [
+            "-u",
+            scriptPath
+        ]
+    );
+
+
+    whisperProcess.stdout.on(
+        "data",
+        (data) => {
+
+            const output =
+                data.toString().trim();
+
+            console.log(
+                "WHISPER:",
+                output
+            );
+
+
+            if (
+                output.includes(
+                    "WHISPER_READY"
+                )
+            ) {
+
+                whisperReady = true;
+
+                console.log(
+                    "LOCAL WHISPER READY ⚡"
+                );
+
+                return;
+            }
+
+
+            const transcriptLine =
+                output
+                    .split(/\r?\n/)
+                    .find(
+                        line =>
+                            line.startsWith(
+                                "TRANSCRIPT:"
+                            )
+                    );
+
+
+            if (
+                transcriptLine &&
+                pendingTranscription
+            ) {
+
+                const transcript =
+                    transcriptLine
+                        .replace(
+                            "TRANSCRIPT:",
+                            ""
+                        )
+                        .trim();
+
+                pendingTranscription.resolve(
+                    transcript
+                );
+
+                pendingTranscription = null;
+            }
+
+
+            const errorLine =
+                output
+                    .split(/\r?\n/)
+                    .find(
+                        line =>
+                            line.startsWith(
+                                "ERROR:"
+                            )
+                    );
+
+
+            if (
+                errorLine &&
+                pendingTranscription
+            ) {
+
+                pendingTranscription.reject(
+                    new Error(errorLine)
+                );
+
+                pendingTranscription = null;
+            }
+        }
+    );
+
+
+    whisperProcess.stderr.on(
+        "data",
+        (data) => {
+
+            console.log(
+                "WHISPER INFO:",
+                data.toString()
+            );
+        }
+    );
+
+
+    whisperProcess.on(
+        "close",
+        (code) => {
+
+            console.log(
+                "Whisper stopped:",
+                code
+            );
+
+            whisperProcess = null;
+            whisperReady = false;
+
+            if (pendingTranscription) {
+
+                pendingTranscription.reject(
+                    new Error(
+                        "Whisper process stopped"
+                    )
+                );
+
+                pendingTranscription = null;
+            }
+        }
+    );
+}
+
+function transcribeAudio(audioPath) {
+
+    return new Promise((resolve, reject) => {
+
+        if (!whisperProcess) {
+
+            reject(
+                new Error(
+                    "Whisper process is not running"
+                )
+            );
+
+            return;
+        }
+
+        if (!whisperReady) {
+
+            reject(
+                new Error(
+                    "Whisper model is still loading"
+                )
+            );
+
+            return;
+        }
+
+        if (pendingTranscription) {
+
+            reject(
+                new Error(
+                    "Whisper is already processing audio"
+                )
+            );
+
+            return;
+        }
+
+        pendingTranscription = {
+            resolve,
+            reject
+        };
+
+        console.log(
+            "Sending audio to loaded Whisper..."
+        );
+
+        whisperProcess.stdin.write(
+            audioPath + "\n"
+        );
+    });
+}
+
 
 // CREATE JARVIS WINDOW
 
@@ -62,6 +267,7 @@ function createWindow() {
 app.whenReady().then(() => {
 
     createWindow();
+    startWhisper();
 
 });
 
@@ -278,6 +484,27 @@ ipcMain.handle("phone-command", async (event, command) => {
             break;
         }
 
+        case "direct_call": {
+
+            if (!contactName) {
+                return {
+                    success: false,
+                    message: "Contact name missing"
+                };
+            }
+
+            const safeContactName =
+                contactName.replace(/"/g, '\\"');
+
+            adbCommand =
+                `"${adbPath}" shell am start ` +
+                `-n com.example.jarvismobile/.MainActivity ` +
+                `--es action direct_call ` +
+                `--es contactName "${safeContactName}"`;
+
+            break;
+        }
+
 
         default:
 
@@ -349,16 +576,23 @@ ipcMain.handle(
 
         try {
 
-            console.log("VOICE AUDIO RECEIVED");
+            console.log(
+                "VOICE AUDIO RECEIVED"
+            );
 
-            const buffer = Buffer.from(audioBuffer);
+            const buffer =
+                Buffer.from(audioBuffer);
 
             console.log(
                 "Audio bytes:",
                 buffer.length
             );
 
-            // Temporary recorded audio file
+
+            // =====================================
+            // TEMP AUDIO FILE
+            // =====================================
+
             tempFilePath = path.join(
                 os.tmpdir(),
                 `jarvis-voice-${Date.now()}.webm`
@@ -369,103 +603,35 @@ ipcMain.handle(
                 buffer
             );
 
+
+            // =====================================
+            // USE ALREADY-LOADED WHISPER
+            // =====================================
+
             console.log(
                 "Running Local Whisper..."
             );
 
-            // transcribe.py location
-            const pythonScript = path.join(
-                __dirname,
-                "transcribe.py"
-            );
+            const transcript =
+                await transcribeAudio(
+                    tempFilePath
+                );
 
-            const transcript = await new Promise(
-                (resolve, reject) => {
-
-                    const python = spawn(
-                        "python",
-                        [
-                            pythonScript,
-                            tempFilePath
-                        ]
-                    );
-
-                    let output = "";
-                    let errorOutput = "";
-
-                    python.stdout.on(
-                        "data",
-                        (data) => {
-
-                            output +=
-                                data.toString();
-
-                        }
-                    );
-
-                    python.stderr.on(
-                        "data",
-                        (data) => {
-
-                            errorOutput +=
-                                data.toString();
-
-                            console.log(
-                                "WHISPER:",
-                                data.toString()
-                            );
-
-                        }
-                    );
-
-                    python.on(
-                        "error",
-                        (error) => {
-
-                            reject(error);
-
-                        }
-                    );
-
-                    python.on(
-                        "close",
-                        (code) => {
-
-                            if (code !== 0) {
-
-                                reject(
-                                    new Error(
-                                        errorOutput ||
-                                        `Python exited with code ${code}`
-                                    )
-                                );
-
-                                return;
-                            }
-
-                            resolve(
-                                output.trim()
-                            );
-
-                        }
-                    );
-
-                }
-            );
 
             console.log(
                 "LOCAL TRANSCRIPT:",
                 transcript
             );
 
+
             return {
 
                 success: true,
 
-                transcript:
-                    transcript
+                transcript: transcript
 
             };
+
 
         } catch (error) {
 
@@ -473,6 +639,7 @@ ipcMain.handle(
                 "LOCAL TRANSCRIPTION ERROR:",
                 error
             );
+
 
             return {
 
@@ -483,9 +650,13 @@ ipcMain.handle(
 
             };
 
+
         } finally {
 
-            // Delete temporary recording
+            // =====================================
+            // DELETE TEMP RECORDING
+            // =====================================
+
             if (
                 tempFilePath &&
                 fs.existsSync(tempFilePath)
@@ -505,11 +676,8 @@ ipcMain.handle(
                     );
 
                 }
-
             }
-
         }
-
     }
 );
 // CLOSE ELECTRON

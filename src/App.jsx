@@ -47,6 +47,7 @@ function App() {
   );
   const [ramInfo, setRamInfo] = useState(null);
   const [diskInfo, setDiskInfo] = useState(null);
+  const [pendingCall, setPendingCall] = useState(null);
 
   // live clock, matches the screenshot's "local time" stat
   useEffect(() => {
@@ -143,7 +144,7 @@ function App() {
       const data =
         await window.electronAPI.getDiskInfo();
 
-      console.log("DISK DATA:", data);
+
 
       setDiskInfo(data);
     };
@@ -227,16 +228,101 @@ function App() {
     const phoneResult = handlePhoneCommand(text);
 
 
-    console.log(shoppingResult);
-    console.log(browserResult);
-    console.log(jobResult);
+    // ==========================================
+    // CALL CONFIRMATION
+    // ==========================================
 
-    if (phoneResult) {
+    if (pendingCall) {
+
+      const answer = command
+        .toLowerCase()
+        .trim();
+
+      if (
+        answer === "yes" ||
+        answer === "yeah" ||
+        answer === "yep" ||
+        answer === "confirm"
+      ) {
+
+        const contactToCall = pendingCall;
+
+        setPendingCall(null);
+
+        const result =
+          await window.electronAPI.sendPhoneCommand({
+            action: "direct_call",
+            contactName: contactToCall
+          });
+
+        console.log(
+          "DIRECT CALL RESULT:",
+          result
+        );
+
+        return;
+      }
+
+
+      if (
+        answer === "no" ||
+        answer === "nope" ||
+        answer === "cancel"
+      ) {
+
+        setPendingCall(null);
+
+        console.log(
+          "Call cancelled"
+        );
+
+        return;
+      }
+    } else if (phoneResult) {
 
       console.log(
         "PHONE AGENT RESULT:",
         phoneResult
       );
+      // CALL REQUEST → ASK FOR CONFIRMATION
+
+      if (phoneResult.action === "call_contact") {
+
+        const contactName =
+          phoneResult.contactName;
+
+        // Contact ko temporarily remember karo
+        setPendingCall(contactName);
+
+        const confirmationMessage =
+          `Do you want me to call ${contactName}?`;
+
+        console.log(
+          "CALL CONFIRMATION:",
+          confirmationMessage
+        );
+
+
+        // Jarvis voice me confirmation bolega
+        const speech =
+          new SpeechSynthesisUtterance(
+            confirmationMessage
+          );
+
+        window.speechSynthesis.speak(speech);
+
+
+        // Chat me bhi message show hoga
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: crypto.randomUUID(),
+            sender: "jarvis",
+            text: confirmationMessage,
+          },
+        ]);
+        return;
+      }
 
       const result =
         await window.electronAPI.sendPhoneCommand(
@@ -259,7 +345,7 @@ function App() {
         },
       ]);
 
-      return; // IMPORTANT
+      return;
     } else if (memoryResult) {
 
       setMessages(prev => [
