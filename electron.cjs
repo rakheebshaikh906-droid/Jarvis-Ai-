@@ -496,6 +496,8 @@ ipcMain.handle("phone-command", async (event, command) => {
             const safeContactName =
                 contactName.replace(/"/g, '\\"');
 
+
+
             adbCommand =
                 `"${adbPath}" shell am start ` +
                 `-n com.example.jarvismobile/.MainActivity ` +
@@ -504,6 +506,7 @@ ipcMain.handle("phone-command", async (event, command) => {
 
             break;
         }
+
 
 
         default:
@@ -522,9 +525,13 @@ ipcMain.handle("phone-command", async (event, command) => {
 
     return new Promise((resolve) => {
 
+        console.time("phone-command-time");
+
         exec(
             adbCommand,
             (error, stdout, stderr) => {
+
+                console.timeEnd("phone-command-time");
 
                 if (error) {
 
