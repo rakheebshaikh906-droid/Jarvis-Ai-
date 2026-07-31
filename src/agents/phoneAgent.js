@@ -4,7 +4,8 @@ export function handlePhoneCommand(command) {
 
     command = command
         .toLowerCase()
-        .trim();
+        .trim()
+        .replace(/[.,!?]+$/g, "");
 
 
 

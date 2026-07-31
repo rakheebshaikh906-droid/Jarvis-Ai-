@@ -47,8 +47,13 @@ function App() {
   );
   const [ramInfo, setRamInfo] = useState(null);
   const [diskInfo, setDiskInfo] = useState(null);
+  const pendingCallRef = useRef(null);
   const [pendingCall, setPendingCall] = useState(null);
 
+  function setPendingCallSafe(value) {
+    pendingCallRef.current = value;
+    setPendingCall(value);
+  }
   // live clock, matches the screenshot's "local time" stat
   useEffect(() => {
     const t = setInterval(() => {
@@ -234,9 +239,12 @@ function App() {
 
     if (pendingCall) {
 
-      const answer = command
-        .toLowerCase()
-        .trim();
+      const answer = cmd
+        .trim()
+        .replace(/[.,!?]+$/g, "");
+
+      console.log("PENDING CALL:", pendingCall);
+      console.log("USER ANSWER:", answer);
 
       if (
         answer === "yes" ||
@@ -245,8 +253,11 @@ function App() {
         answer === "confirm"
       ) {
 
+        console.log("YES DETECTED");
         const contactToCall = pendingCall;
 
+
+        console.log("SENDING DIRECT CALL");
         setPendingCall(null);
 
         const result =
