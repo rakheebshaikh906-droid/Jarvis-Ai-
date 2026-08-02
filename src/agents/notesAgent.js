@@ -82,23 +82,3 @@ export function handleNotesCommand(text) {
 
     return null;
 }
-
-console.log(
-    handleNotesCommand("Take a note Buy Milk")
-);
-
-console.log(
-    handleNotesCommand("Take a note Complete Jarvis Project")
-);
-
-console.log(
-    handleNotesCommand("Show my notes")
-);
-
-console.log(
-    handleNotesCommand("Delete note 1")
-);
-
-console.log(
-    handleNotesCommand("Show my notes")
-);

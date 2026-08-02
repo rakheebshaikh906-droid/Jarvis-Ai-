@@ -27,32 +27,20 @@ export function detectIntent(text) {
     const searchWords = [
 
         "latest",
-
         "current",
-
         "today",
-
         "news",
-
         "price",
-
         "winner",
-
         "won",
-
         "score",
-
         "bitcoin",
-
         "stock",
-
         "president",
-
         "prime minister",
-
         "2025",
-
         "2026"
+
     ];
 
     if (
