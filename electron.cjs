@@ -382,7 +382,8 @@ ipcMain.handle("phone-command", async (event, command) => {
     console.log(
         "Phone command received:",
         action,
-        contactName || ""
+        contactName || "",
+        message || ""
     );
 
     if (!action) {
@@ -460,6 +461,73 @@ ipcMain.handle("phone-command", async (event, command) => {
                 `-p com.whatsapp ` +
                 `-c android.intent.category.LAUNCHER 1`;
 
+            break;
+
+        case "send_whatsapp": {
+
+            const safeContact =
+                contactName.replace(/"/g, '\\"');
+
+            const safeMessage =
+                message.replace(/"/g, '\\"');
+
+            adbCommand =
+                `"${adbPath}" shell am start ` +
+                `-n com.example.jarvismobile/.MainActivity ` +
+                `--es action send_whatsapp ` +
+                `--es contactName "${safeContact}" ` +
+                `--es message "${safeMessage}"`;
+
+            break;
+        }
+
+
+        case "open_snapchat":
+
+            adbCommand =
+                `"${adbPath}" shell monkey ` +
+                `-p com.snapchat.android ` +
+                `-c android.intent.category.LAUNCHER 1`;
+
+            break;
+
+        case "open_facebook":
+
+            adbCommand =
+                `"${adbPath}" shell monkey ` +
+                `-p com.facebook.katana ` +
+                `-c android.intent.category.LAUNCHER 1`;
+            break;
+        case "open_twitter":
+
+            adbCommand =
+                `"${adbPath}" shell monkey ` +
+                `-p com.twitter.android ` +
+                `-c android.intent.category.LAUNCHER 1`;
+            break;
+
+        case "open_amazon":
+            adbCommand =
+                `"${adbPath}" shell monkey ` +
+                `-p com.amazon.mShop.android.shopping ` +
+                `-c android.intent.category.LAUNCHER 1`;
+            break;
+
+
+        case "open_flipkart":
+
+            adbCommand =
+                `"${adbPath}" shell monkey ` +
+                `-p com.flipkart.android ` +
+                `-c android.intent.category.LAUNCHER 1`;
+            break;
+
+        case "open_gmail":
+
+            adbCommand =
+                `"${adbPath}" shell monkey ` +
+                `-p com.google.android.gm ` +
+                `-c android.intent.category.LAUNCHER 1`;
             break;
 
 

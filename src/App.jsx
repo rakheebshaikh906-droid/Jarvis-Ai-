@@ -341,11 +341,6 @@ function App() {
           phoneResult
         );
 
-      console.log(
-        "PHONE RESULT:",
-        result
-      );
-
       setMessages((prev) => [
         ...prev,
         {

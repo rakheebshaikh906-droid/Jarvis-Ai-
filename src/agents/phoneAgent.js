@@ -34,6 +34,50 @@ export function handlePhoneCommand(command) {
         };
     }
 
+    // SEND WHATSAPP MESSAGE
+
+    let match = command.match(
+        /^send\s+(?:whatsapp\s+)?message\s+to\s+(.+?)\s+saying\s+(.+)$/i
+    );
+
+    if (match) {
+
+        console.log(
+            "WHATSAPP MESSAGE DETECTED:",
+            match[1],
+            match[2]
+        );
+
+        return {
+            agent: "phone",
+            action: "send_whatsapp",
+            contactName: match[1].trim(),
+            message: match[2].trim()
+        };
+    }
+
+    // WhatsApp Ashu hello
+
+    match = command.match(
+        /^whatsapp\s+(.+?)\s+(.+)$/i
+    );
+
+    if (match) {
+
+        console.log(
+            "WHATSAPP MESSAGE DETECTED:",
+            match[1],
+            match[2]
+        );
+
+        return {
+            agent: "phone",
+            action: "send_whatsapp",
+            contactName: match[1].trim(),
+            message: match[2].trim()
+        };
+    }
+
     //CHECK IF COMMAND IS FOR PHONE
 
     const isPhoneCommand =
@@ -141,6 +185,86 @@ export function handlePhoneCommand(command) {
         };
     }
 
+    // snapchat on phone
 
+    if (
+        (
+            command.includes("snapchat") ||
+            command.includes("snap chat")
+        ) &&
+        command.includes("open")
+    ) {
+
+        return {
+            agent: "phone",
+            action: "open_snapchat",
+            message: "Opening Snapchat on your phone"
+        };
+    }
+
+    // facebook on phone
+
+    if (
+        command.includes("facebook") &&
+        command.includes("open")
+    ) {
+
+        return {
+            agent: "phone",
+            action: "open_facebook",
+            message: "Opening Facebook on your phone"
+        };
+    }
+
+    // twitter on phone
+
+    if (
+        command.includes("twitter") &&
+        command.includes("open")
+    ) {
+
+        return {
+            agent: "phone",
+            action: "open_twitter",
+            message: "Opening Twitter on your phone"
+        };
+    }
+
+    //amazon on phone
+    if (
+        command.includes("amazon") &&
+        command.includes("open")
+    ) {
+        return {
+            agent: "phone",
+            action: "open_amazon",
+            message: "Opening Amazon on your phone"
+        };
+    }
+    //flipkart on phone
+    if (
+        command.includes("flipkart") &&
+        command.includes("open")
+    ) {
+        return {
+            agent: "phone",
+            action: "open_flipkart",
+            message: "Opening Flipkart on your phone"
+        };
+    }
+    //gmail on phone
+    if (
+        (
+            command.includes("gmail") ||
+            command.includes("email")
+        ) &&
+        command.includes("open")
+    ) {
+        return {
+            agent: "phone",
+            action: "open_gmail",
+            message: "Opening Gmail on your phone"
+        };
+    }
     return null;
 }
