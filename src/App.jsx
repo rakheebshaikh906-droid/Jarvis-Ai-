@@ -250,7 +250,8 @@ function App() {
         answer === "yes" ||
         answer === "yeah" ||
         answer === "yep" ||
-        answer === "confirm"
+        answer === "confirm" ||
+        answer === "sure"
       ) {
 
         console.log("YES DETECTED");
