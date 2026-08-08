@@ -48,6 +48,9 @@ export function handlePhoneCommand(command) {
             match[2]
         );
 
+        console.log("MATCH1 =", match[1]);
+        console.log("MATCH2 =", match[2]);
+
         return {
             agent: "phone",
             action: "send_whatsapp",

@@ -294,7 +294,7 @@ function App() {
 
       console.log(
         "PHONE AGENT RESULT:",
-        phoneResult
+        JSON.stringify(phoneResult, null, 2)
       );
       // CALL REQUEST → ASK FOR CONFIRMATION
 

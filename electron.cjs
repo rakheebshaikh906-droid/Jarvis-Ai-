@@ -3,7 +3,7 @@
 require("dotenv").config();
 
 const { app, BrowserWindow, ipcMain } = require("electron");
-const { exec, spawn } = require("child_process");
+const { execFile, exec, spawn } = require("child_process");
 const path = require("path");
 const fs = require("fs");
 const os = require("os");
@@ -379,6 +379,11 @@ ipcMain.handle("phone-command", async (event, command) => {
             ? command.contactName
             : null;
 
+    const message =
+        typeof command === "object" && command !== null
+            ? command.message
+            : null;
+
     console.log(
         "Phone command received:",
         action,
@@ -402,6 +407,7 @@ ipcMain.handle("phone-command", async (event, command) => {
     );
 
     let adbCommand;
+    let args;
 
     switch (action) {
 
@@ -465,18 +471,22 @@ ipcMain.handle("phone-command", async (event, command) => {
 
         case "send_whatsapp": {
 
-            const safeContact =
-                contactName.replace(/"/g, '\\"');
-
-            const safeMessage =
-                message.replace(/"/g, '\\"');
-
-            adbCommand =
-                `"${adbPath}" shell am start ` +
-                `-n com.example.jarvismobile/.MainActivity ` +
-                `--es action send_whatsapp ` +
-                `--es contactName "${safeContact}" ` +
-                `--es message "${safeMessage}"`;
+            args = [
+                "shell",
+                "am",
+                "start",
+                "-n",
+                "com.example.jarvismobile/.MainActivity",
+                "--es",
+                "action",
+                "send_whatsapp",
+                "--es",
+                "contactName",
+                contactName,
+                "--es",
+                "message",
+                message
+            ];
 
             break;
         }
@@ -595,6 +605,57 @@ ipcMain.handle("phone-command", async (event, command) => {
 
         console.time("phone-command-time");
 
+        if (action === "send_whatsapp") {
+
+            console.log("ADB ARGS:");
+            console.log(args);
+
+            execFile(
+                adbPath,
+                args,
+                (error, stdout, stderr) => {
+
+                    console.timeEnd("phone-command-time");
+
+                    if (error) {
+
+                        console.error(
+                            "ADB Error:",
+                            error
+                        );
+
+                        console.error(
+                            "ADB stderr:",
+                            stderr
+                        );
+
+                        resolve({
+                            success: false,
+                            message: error.message
+                        });
+
+                        return;
+                    }
+
+                    console.log(
+                        "ADB Output:",
+                        stdout
+                    );
+
+                    resolve({
+                        success: true,
+                        message:
+                            `${action} executed successfully`
+                    });
+                }
+            );
+
+            return;
+        }
+
+        console.log("ADB COMMAND:");
+        console.log(adbCommand);
+
         exec(
             adbCommand,
             (error, stdout, stderr) => {
@@ -609,38 +670,26 @@ ipcMain.handle("phone-command", async (event, command) => {
                     );
 
                     resolve({
-
                         success: false,
-
-                        message:
-                            error.message
-
+                        message: error.message
                     });
 
                     return;
                 }
-
 
                 console.log(
                     "ADB Output:",
                     stdout
                 );
 
-
                 resolve({
-
                     success: true,
-
                     message:
                         `${action} executed successfully`
-
                 });
-
             }
         );
-
     });
-
 });
 
 ipcMain.handle(
@@ -755,6 +804,7 @@ ipcMain.handle(
         }
     }
 );
+
 // CLOSE ELECTRON
 app.on(
     "window-all-closed",
