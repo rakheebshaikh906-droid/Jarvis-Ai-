@@ -23,6 +23,7 @@ console.log(
 let whisperProcess = null;
 let whisperReady = false;
 let pendingTranscription = null;
+let wakeProcess = null;
 
 function startWhisper() {
 
@@ -34,6 +35,8 @@ function startWhisper() {
         __dirname,
         "transcribe.py"
     );
+    const wakeWordScriptPath =
+        path.join(__dirname, "wake_word.py");
 
     console.log(
         "Starting persistent Whisper..."
@@ -171,6 +174,73 @@ function startWhisper() {
             }
         }
     );
+
+    wakeProcess = spawn(
+        "python",
+        [
+            "-u",
+            wakeWordScriptPath
+        ]
+    );
+
+    wakeProcess.stdout.on(
+        "data",
+        (data) => {
+
+            const output =
+                data.toString().trim();
+
+            console.log(
+                "WAKE:",
+                output
+            );
+
+            if (
+                output.includes(
+                    "WAKE_DETECTED"
+                )
+            ) {
+
+                console.log(
+                    " HEY JARVIS DETECTED"
+                );
+
+                if (wakeProcess) {
+
+                    wakeProcess.kill();
+
+                    wakeProcess = null;
+                }
+
+                // IMPORTANT:
+                // Yahan renderer ko signal bhejna hai.
+            }
+        }
+    );
+
+    wakeProcess.stderr.on(
+        "data",
+        (data) => {
+
+            console.log(
+                "WAKE INFO:",
+                data.toString()
+            );
+        }
+    );
+
+    wakeProcess.on(
+        "close",
+        (code) => {
+
+            console.log(
+                "Wake process stopped:",
+                code
+            );
+
+            wakeProcess = null;
+        }
+    );
 }
 
 function transcribeAudio(audioPath) {
@@ -228,10 +298,10 @@ function transcribeAudio(audioPath) {
 
 // CREATE JARVIS WINDOW
 
-
+let win = null;
 function createWindow() {
 
-    const win = new BrowserWindow({
+    win = new BrowserWindow({
         width: 1200,
         height: 800,
 

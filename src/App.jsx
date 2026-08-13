@@ -28,6 +28,7 @@ import { scheduleReminder } from "./agents/reminderAgent";
 import { saveNote, getNotes, deleteNote } from "./agents/notesAgent";
 import { handleNotesCommand } from "./agents/notesAgent";
 import { handlePhoneCommand } from "./agents/phoneAgent";
+
 function App() {
   const [command, setCommand] = useState("");
   const [input, setInput] = useState("");
