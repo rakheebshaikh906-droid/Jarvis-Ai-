@@ -471,21 +471,16 @@ ipcMain.handle("phone-command", async (event, command) => {
 
         case "send_whatsapp": {
 
+            const shellQuote = (value) =>
+                "'" + String(value).replace(/'/g, "'\\''") + "'";
+
             args = [
                 "shell",
-                "am",
-                "start",
-                "-n",
-                "com.example.jarvismobile/.MainActivity",
-                "--es",
-                "action",
-                "send_whatsapp",
-                "--es",
-                "contactName",
-                contactName,
-                "--es",
-                "message",
-                message
+                `am start ` +
+                `-n com.example.jarvismobile/.MainActivity ` +
+                `--es action send_whatsapp ` +
+                `--es contactName ${shellQuote(contactName)} ` +
+                `--es message ${shellQuote(message)}`
             ];
 
             break;
