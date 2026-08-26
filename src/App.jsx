@@ -448,17 +448,38 @@ function App() {
       ]);
 
       return;
+
     } else if (shoppingResult) {
 
-      const aiResult = await getShoppingRecommendation(
-        shoppingResult.category,
-        shoppingResult.budget
+      let aiResult = null;
+
+      try {
+
+        aiResult = await getShoppingRecommendation(
+          shoppingResult.category,
+          shoppingResult.budget
+        );
+
+        console.log(aiResult);
+
+      } catch (error) {
+
+        console.error(
+          "Shopping AI unavailable:",
+          error
+        );
+
+      }
+
+      window.open(
+        shoppingResult.amazonUrl,
+        "_blank"
       );
 
-      console.log(aiResult);
-
-      window.open(shoppingResult.amazonUrl, "_blank");
-      window.open(shoppingResult.flipkartUrl, "_blank");
+      window.open(
+        shoppingResult.flipkartUrl,
+        "_blank"
+      );
 
       setMessages(prev => [
         ...prev,
@@ -470,20 +491,34 @@ function App() {
           category: shoppingResult.category,
           budget: shoppingResult.budget,
 
-          recommendations: aiResult.products ?? [],
+          recommendations: aiResult?.products ?? [],
 
           text: `Searching best ${shoppingResult.category}`
         }
       ]);
 
       return;
+    }
+    else if (jobResult) {
 
-    } else if (jobResult) {
+      let aiResult = null;
 
-      const aiResult = await getJobRecommendation(
-        jobResult.role,
-        jobResult.location
-      );
+      try {
+
+        aiResult = await getJobRecommendation(
+          jobResult.role,
+          jobResult.location
+        );
+
+      } catch (error) {
+
+        console.error(
+          "Job AI unavailable:",
+          error
+        );
+
+      }
+
       console.log(aiResult);
 
       window.open(jobResult.linkedInUrl, "_blank");
@@ -505,25 +540,6 @@ function App() {
       ]);
 
       return;
-    }
-    else if (browserResult) {
-      window.open(browserResult.url, "_blank");
-
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: crypto.randomUUID(),
-          sender: "jarvis",
-          type: "browser",
-
-          website: browserResult.website,
-          action: browserResult.action,
-          query: browserResult.query,
-
-          text: browserResult.message,
-        },
-      ]);
-      return;
     } else if (cmd.includes("open youtube")) {
       speak("Open YouTube");
       window.open("https://www.youtube.com", "_blank");
@@ -539,7 +555,15 @@ function App() {
     } else if (cmd.includes("linkdin")) {
       speak("Open linkdin");
       window.open("https://www.linkedin.com/in/rakheeb-shaikh-54830b380", "_blank");
-    } else if (cmd.includes("open calculator")) {
+    } else if (cmd.includes("open flipkart")) {
+      speak("open flipkart");
+      window.open("https://www.flipkart.com/", "_blank");
+    } else if (cmd.includes("open amazon")) {
+      speak("open amazon");
+      window.open("https://www.amazon.in/", "_blank");
+
+    }
+    else if (cmd.includes("open calculator")) {
       addJarvisMessage("Opening Calculator...");
       speak("Opening Calculator");
       window.electronAPI?.openApp("calculator");
@@ -563,6 +587,24 @@ function App() {
       addJarvisMessage("Opening Spotify...");
       speak("Opening Spotify");
       window.electronAPI?.openApp("spotify");
+    } else if (browserResult) {
+      window.open(browserResult.url, "_blank");
+
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: crypto.randomUUID(),
+          sender: "jarvis",
+          type: "browser",
+
+          website: browserResult.website,
+          action: browserResult.action,
+          query: browserResult.query,
+
+          text: browserResult.message,
+        },
+      ]);
+      return;
     } else if (cmd.includes("hello jarvis")) {
       const hour = new Date().getHours();
       let greeting = "Hello Rakheeb";
@@ -835,107 +877,99 @@ function App() {
     try {
       console.log("Starting Electron microphone recording...");
 
-      // Microphone access
-      const stream = await navigator.mediaDevices.getUserMedia({
-        audio: true,
-      });
-
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       const mediaRecorder = new MediaRecorder(stream);
-
       const audioChunks = [];
 
+      // --- silence detection setup ---
+      const audioCtx = new AudioContext();
+      const source = audioCtx.createMediaStreamSource(stream);
+      const analyser = audioCtx.createAnalyser();
+      analyser.fftSize = 512;
+      source.connect(analyser);
+      const dataArray = new Uint8Array(analyser.frequencyBinCount);
+
+      const SILENCE_THRESHOLD = 12;   // tune if it cuts off too early/late
+      const SILENCE_DURATION_MS = 1200; // stop after this much continuous silence
+      const MAX_RECORDING_MS = 8000;    // hard safety cap
+
+      let silenceStart = null;
+      let stopped = false;
+      let silenceCheckInterval;
+
+      const stopRecording = () => {
+        if (stopped) return;
+        stopped = true;
+        clearInterval(silenceCheckInterval);
+        audioCtx.close();
+        if (mediaRecorder.state === "recording") mediaRecorder.stop();
+      };
+
       mediaRecorder.ondataavailable = (event) => {
-        if (event.data.size > 0) {
-          audioChunks.push(event.data);
-        }
+        if (event.data.size > 0) audioChunks.push(event.data);
       };
 
       mediaRecorder.onstart = () => {
-        console.log(" RECORDING STARTED");
+        console.log("RECORDING STARTED");
         setIsListening(true);
+
+        silenceCheckInterval = setInterval(() => {
+          analyser.getByteTimeDomainData(dataArray);
+          let sumSquares = 0;
+          for (let i = 0; i < dataArray.length; i++) {
+            const v = dataArray[i] - 128;
+            sumSquares += v * v;
+          }
+          const rms = Math.sqrt(sumSquares / dataArray.length);
+
+          if (rms < SILENCE_THRESHOLD) {
+            if (silenceStart === null) silenceStart = Date.now();
+            else if (Date.now() - silenceStart > SILENCE_DURATION_MS) {
+              stopRecording();
+            }
+          } else {
+            silenceStart = null;
+          }
+        }, 100);
+
+        setTimeout(stopRecording, MAX_RECORDING_MS); // safety cap
       };
 
       mediaRecorder.onstop = async () => {
-
-        console.log(" RECORDING STOPPED");
+        console.log("RECORDING STOPPED");
 
         const audioBlob = new Blob(audioChunks, {
           type: mediaRecorder.mimeType || "audio/webm",
         });
 
-        console.log("AUDIO BLOB:", audioBlob);
-        console.log("AUDIO SIZE:", audioBlob.size, "bytes");
-        console.log("AUDIO TYPE:", audioBlob.type);
-
-        // Audio Blob → ArrayBuffer
         const arrayBuffer = await audioBlob.arrayBuffer();
 
-        // Send audio to Electron through preload
-        const result =
-          await window.electronAPI.sendAudioForTranscription(
-            arrayBuffer,
-            audioBlob.type
-          );
-
-        console.log(
-          "ELECTRON AUDIO RESULT:",
-          result
+        const result = await window.electronAPI.sendAudioForTranscription(
+          arrayBuffer,
+          audioBlob.type
         );
+
+        console.log("ELECTRON AUDIO RESULT:", result);
+
         if (result.success && result.transcript) {
-
-          const transcript = result.transcript
-            .toLowerCase()
-            .trim();
-
+          const transcript = result.transcript.toLowerCase().trim();
           console.log("VOICE COMMAND:", transcript);
-
           await handleCommand(transcript);
         }
 
         setIsListening(false);
+        stream.getTracks().forEach((track) => track.stop());
 
-        // Release microphone
-        stream.getTracks().forEach((track) => {
-          track.stop();
-        });
+        // Restart wake-word listening so "Hey Jarvis" works again without a click
+        await window.electronAPI.restartWakeWord();
       };
 
       mediaRecorder.start();
-
-      // Temporary test: automatically stop after 5 seconds
-      setTimeout(() => {
-        if (mediaRecorder.state === "recording") {
-          mediaRecorder.stop();
-        }
-      }, 1700);
-
     } catch (error) {
       console.error("MIC RECORDING ERROR:", error);
       setIsListening(false);
     }
   };
-
-  useEffect(() => {
-
-    if (!window.electronAPI?.onWakeWordDetected) {
-      console.log("Wake word IPC not available");
-      return;
-    }
-
-    const handleWakeWord = async () => {
-
-      console.log(
-        "HEY JARVIS → START RECORDING"
-      );
-
-      await startElectronRecording();
-    };
-
-    window.electronAPI.onWakeWordDetected(
-      handleWakeWord
-    );
-
-  }, []);
   useEffect(() => {
     chatRef.current?.scrollTo({
       top: chatRef.current.scrollHeight,
