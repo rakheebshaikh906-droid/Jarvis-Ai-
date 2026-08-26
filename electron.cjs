@@ -1,5 +1,3 @@
-
-
 require("dotenv").config();
 
 const { app, BrowserWindow, ipcMain } = require("electron");
@@ -24,6 +22,127 @@ let whisperProcess = null;
 let whisperReady = false;
 let pendingTranscription = null;
 let wakeProcess = null;
+let wakeWordProcess = null;
+
+function startWakeWordProcess() {
+
+    if (wakeWordProcess) {
+        console.log("Wake word process already running");
+        return;
+    }
+
+    const wakePython = path.join(
+        __dirname,
+        ".venv",
+        "Scripts",
+        "python.exe"
+    );
+
+    const wakeScript = path.join(
+        __dirname,
+        "wake_word.py"
+    );
+
+    console.log("Starting Wake Word...");
+
+    wakeWordProcess = spawn(
+        wakePython,
+        [
+            "-u",
+            wakeScript
+        ]
+    );
+
+    wakeWordProcess.stdout.on(
+        "data",
+        (data) => {
+
+            const output =
+                data.toString();
+
+            const lines =
+                output.split(/\r?\n/);
+
+            lines.forEach((line) => {
+
+                const trimmed =
+                    line.trim();
+
+                if (!trimmed) return;
+
+                console.log(
+                    "WAKE:",
+                    trimmed
+                );
+
+                if (
+                    trimmed.startsWith(
+                        "WAKE_DETECTED"
+                    )
+                ) {
+
+                    console.log(
+                        "HEY JARVIS DETECTED"
+                    );
+
+                    // Wake process microphone release
+                    stopWakeWordProcess();
+
+                    // Send event to React
+                    if (
+                        win &&
+                        !win.isDestroyed()
+                    ) {
+
+                        win.webContents.send(
+                            "wake-word-detected"
+                        );
+                    }
+                }
+            });
+        }
+    );
+
+    wakeWordProcess.stderr.on(
+        "data",
+        (data) => {
+
+            console.log(
+                "WAKE INFO:",
+                data.toString()
+            );
+        }
+    );
+
+    wakeWordProcess.on(
+        "close",
+        (code) => {
+
+            console.log(
+                "Wake process stopped:",
+                code
+            );
+
+            wakeWordProcess = null;
+        }
+    );
+}
+
+
+function stopWakeWordProcess() {
+
+    if (!wakeWordProcess) {
+        return;
+    }
+
+    console.log(
+        "Stopping Wake Word..."
+    );
+
+    wakeWordProcess.kill();
+
+    wakeWordProcess = null;
+}
 
 function startWhisper() {
 
@@ -42,8 +161,15 @@ function startWhisper() {
         "Starting persistent Whisper..."
     );
 
+    const pythonPath = path.join(
+        __dirname,
+        ".venv",
+        "Scripts",
+        "python.exe"
+    );
+
     whisperProcess = spawn(
-        "python",
+        pythonPath,
         [
             "-u",
             scriptPath
@@ -431,6 +557,23 @@ ipcMain.handle("get-disk-info", async () => {
     };
 
 });
+
+// NEW HANDLER
+ipcMain.handle(
+    "restart-wake-word",
+    async () => {
+
+        console.log(
+            "Restarting Wake Word..."
+        );
+
+        startWakeWordProcess();
+
+        return {
+            success: true
+        };
+    }
+);
 
 
 // PHONE AGENT - ANDROID ADB CONTROL

@@ -26,4 +26,21 @@ contextBridge.exposeInMainWorld("electronAPI", {
             mimeType
         ),
 
+    onWakeWordDetected: (callback) => {
+
+        ipcRenderer.on(
+            "wake-word-detected",
+            callback
+        );
+
+    },
+
+    restartWakeWord: () => {
+
+        return ipcRenderer.invoke(
+            "restart-wake-word"
+        );
+    }
+
+
 });

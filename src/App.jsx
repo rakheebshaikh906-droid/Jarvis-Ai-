@@ -51,6 +51,7 @@ function App() {
   const pendingCallRef = useRef(null);
   const [pendingCall, setPendingCall] = useState(null);
 
+
   function setPendingCallSafe(value) {
     pendingCallRef.current = value;
     setPendingCall(value);
@@ -210,6 +211,11 @@ function App() {
   }
 
   const handleCommand = async (text) => {
+
+    console.log(
+      "RAW TEXT RECEIVED:",
+      JSON.stringify(text)
+    );
     const intent = detectIntent(text);
 
     console.log(intent);
@@ -232,6 +238,7 @@ function App() {
     const reminderResult = handleReminderCommand(text);
     const notesResult = handleNotesCommand(text);
     const phoneResult = handlePhoneCommand(text);
+    const iselectron = !!window.electronAPI;
 
 
     // ==========================================
@@ -909,6 +916,27 @@ function App() {
   };
 
   useEffect(() => {
+
+    if (!window.electronAPI?.onWakeWordDetected) {
+      console.log("Wake word IPC not available");
+      return;
+    }
+
+    const handleWakeWord = async () => {
+
+      console.log(
+        "HEY JARVIS → START RECORDING"
+      );
+
+      await startElectronRecording();
+    };
+
+    window.electronAPI.onWakeWordDetected(
+      handleWakeWord
+    );
+
+  }, []);
+  useEffect(() => {
     chatRef.current?.scrollTo({
       top: chatRef.current.scrollHeight,
       behavior: "smooth",
@@ -931,7 +959,9 @@ function App() {
 
   const isElectron = navigator.userAgent
     .toLowerCase()
-    .includes("electron");
+    .includes('electron');
+
+
 
 
   return (
