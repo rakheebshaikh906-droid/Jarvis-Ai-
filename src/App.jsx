@@ -623,6 +623,24 @@ function App() {
     } else if (cmd.includes("show date")) {
       addJarvisMessage(new Date().toDateString());
       speak(`The current date is ${new Date().toDateString()}`);
+    } else if (cmd.includes("hello jarvis check bp")) {
+
+      const bp = Math.floor(Math.random() * 41) + 80;
+
+      const msg = `Your blood pressure reading is ${bp}.`;
+
+      speak(msg);
+
+      setMessages(prev => [
+        ...prev,
+        {
+          id: crypto.randomUUID(),
+          sender: "jarvis",
+          text: msg
+        }
+      ]);
+
+      return;
     } else if (cmd.includes("now tell me about virat kohli")) {
       const msg =
         "Virat Kohli is an Indian cricketer and former captain of the Indian national team. He is one of the most successful batsmen in the history of cricket.";
