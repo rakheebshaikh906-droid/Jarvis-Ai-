@@ -623,7 +623,7 @@ function App() {
     } else if (cmd.includes("show date")) {
       addJarvisMessage(new Date().toDateString());
       speak(`The current date is ${new Date().toDateString()}`);
-    } else if (cmd.includes("hello jarvis check bp")) {
+    } else if (cmd.includes("jarvis check bp")) {
 
       const bp = Math.floor(Math.random() * 41) + 80;
 
