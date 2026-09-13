@@ -989,6 +989,13 @@ function App() {
     }
   };
   useEffect(() => {
+    if (!window.electronAPI?.onWakeWordDetected) return;
+    window.electronAPI.onWakeWordDetected(() => {
+      console.log("Hey Jarvis heard — starting recording");
+      startElectronRecording();
+    });
+  }, []);
+  useEffect(() => {
     chatRef.current?.scrollTo({
       top: chatRef.current.scrollHeight,
       behavior: "smooth",

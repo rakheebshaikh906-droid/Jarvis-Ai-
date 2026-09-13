@@ -395,6 +395,7 @@ app.whenReady().then(() => {
 
     createWindow();
     startWhisper();
+    startWakeWordProcess();
 
 });
 

@@ -27,19 +27,15 @@ contextBridge.exposeInMainWorld("electronAPI", {
         ),
 
     onWakeWordDetected: (callback) => {
-
-        ipcRenderer.on(
-            "wake-word-detected",
-            callback
-        );
-
+        ipcRenderer.removeAllListeners("wake-word-detected"); // prevent duplicates
+        ipcRenderer.on("wake-word-detected", callback);
     },
 
     restartWakeWord: () => {
 
         return ipcRenderer.invoke(
             "restart-wake-word"
-        );
+        ); onWake
     }
 
 
