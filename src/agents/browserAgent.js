@@ -2,7 +2,7 @@ import { decideWebsite } from "./decisionAgent";
 import { generateSearchUrl } from "./urlGenerator";
 
 export function handleBrowserCommand(text) {
-    const command = text.toLowerCase();
+    const command = text.toLowerCase().trim();
 
     const browserKeywords = [
         "search",
@@ -27,22 +27,19 @@ export function handleBrowserCommand(text) {
     }
 
     const decision = decideWebsite(text);
-
     const website = decision.website;
 
     let action = "search";
 
-    if (text.toLowerCase().includes("play"))
+    if (command.includes("play")) {
         action = "play";
-
-    else if (text.toLowerCase().includes("watch"))
+    } else if (command.includes("watch")) {
         action = "watch";
-
-    else if (text.toLowerCase().includes("learn"))
+    } else if (command.includes("learn")) {
         action = "learn";
-
-    else if (text.toLowerCase().includes("find"))
+    } else if (command.includes("find")) {
         action = "find";
+    }
 
     const query = text
         .replace(/open/gi, "")
@@ -56,13 +53,19 @@ export function handleBrowserCommand(text) {
         .replace(/github/gi, "")
         .replace(/leetcode/gi, "")
         .replace(/linkedin/gi, "")
-        .replace(/on/gi, "")
+        .replace(/\band\b/gi, "")
+        .replace(/\bon\b/gi, "")
         .trim();
 
-    if (!query)
+    if (!query) {
         return null;
+    }
 
     const url = generateSearchUrl(website, query);
+
+    if (!url) {
+        return null;
+    }
 
     return {
         website,

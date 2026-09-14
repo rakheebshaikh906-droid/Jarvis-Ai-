@@ -1,6 +1,6 @@
 require("dotenv").config();
 
-const { app, BrowserWindow, ipcMain } = require("electron");
+const { app, BrowserWindow, ipcMain, globalShortcut } = require("electron");
 const { execFile, exec, spawn } = require("child_process");
 const path = require("path");
 const fs = require("fs");
@@ -390,12 +390,32 @@ function createWindow() {
 
 
 // ELECTRON READY
-
 app.whenReady().then(() => {
 
     createWindow();
     startWhisper();
-    startWakeWordProcess();
+
+    // GLOBAL SHORTCUT → BROWSER MIC
+    globalShortcut.register("CommandOrControl+Shift+B", () => {
+
+        console.log("GLOBAL SHORTCUT: BROWSER MIC");
+
+        if (win && !win.isDestroyed()) {
+            win.webContents.send("start-browser-mic");
+        }
+
+    });
+
+    // GLOBAL SHORTCUT → ELECTRON MIC
+    globalShortcut.register("CommandOrControl+Shift+E", () => {
+
+        console.log("GLOBAL SHORTCUT: ELECTRON MIC");
+
+        if (win && !win.isDestroyed()) {
+            win.webContents.send("start-electron-mic");
+        }
+
+    });
 
 });
 
@@ -419,16 +439,16 @@ ipcMain.handle("open-app", async (event, appName) => {
             exec("notepad");
             break;
 
-        case "vscode":
+        case "vs code":
             console.log("Open VS Code");
-            exec("code");
+            exec("vs code");
             break;
 
         case "chrome":
             exec("start chrome");
             break;
 
-        case "explorer":
+        case "file explorer":
             exec("explorer");
             break;
 
@@ -947,15 +967,20 @@ ipcMain.handle(
 
 // CLOSE ELECTRON
 app.on(
+    "will-quit",
+    () => {
+
+        globalShortcut.unregisterAll();
+
+    }
+);
+
+app.on(
     "window-all-closed",
     () => {
 
-        if (
-            process.platform !== "darwin"
-        ) {
-
+        if (process.platform !== "darwin") {
             app.quit();
-
         }
 
     }

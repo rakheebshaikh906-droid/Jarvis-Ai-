@@ -23,12 +23,22 @@ contextBridge.exposeInMainWorld("electronAPI", {
         ipcRenderer.invoke(
             "transcribe-audio",
             audioBuffer,
+
             mimeType
         ),
 
     onWakeWordDetected: (callback) => {
         ipcRenderer.removeAllListeners("wake-word-detected"); // prevent duplicates
         ipcRenderer.on("wake-word-detected", callback);
+    },
+    onStartBrowserMic: (callback) => {
+        ipcRenderer.removeAllListeners("start-browser-mic");
+        ipcRenderer.on("start-browser-mic", callback);
+    },
+
+    onStartElectronMic: (callback) => {
+        ipcRenderer.removeAllListeners("start-electron-mic");
+        ipcRenderer.on("start-electron-mic", callback);
     },
 
     restartWakeWord: () => {

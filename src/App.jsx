@@ -540,13 +540,14 @@ function App() {
       ]);
 
       return;
-    } else if (cmd.includes("open youtube")) {
+    } else if (cmd === "open youtube" ||
+      cmd === "open youtube.") {
       speak("Open YouTube");
       window.open("https://www.youtube.com", "_blank");
-    } else if (cmd.includes("open  google")) {
+    } else if (cmd.includes("open google")) {
       speak("Open Google");
       window.open("https://www.google.com", "_blank");
-    } else if (cmd.includes(" open github")) {
+    } else if (cmd.includes("open github")) {
       speak("Open GitHub");
       window.open("https://github.com", "_blank");
     } else if (cmd.includes("open leetcode")) {
@@ -978,8 +979,6 @@ function App() {
         setIsListening(false);
         stream.getTracks().forEach((track) => track.stop());
 
-        // Restart wake-word listening so "Hey Jarvis" works again without a click
-        await window.electronAPI.restartWakeWord();
       };
 
       mediaRecorder.start();
@@ -989,9 +988,16 @@ function App() {
     }
   };
   useEffect(() => {
-    if (!window.electronAPI?.onWakeWordDetected) return;
-    window.electronAPI.onWakeWordDetected(() => {
-      console.log("Hey Jarvis heard — starting recording");
+    console.log("GLOBAL MIC LISTENER LOADED");
+    if (!window.electronAPI) return;
+
+    window.electronAPI.onStartBrowserMic(() => {
+      console.log("GLOBAL SHORTCUT → BROWSER MIC");
+      startListening();
+    });
+
+    window.electronAPI.onStartElectronMic(() => {
+      console.log("GLOBAL SHORTCUT → ELECTRON MIC");
       startElectronRecording();
     });
   }, []);
