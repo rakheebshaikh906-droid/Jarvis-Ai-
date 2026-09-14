@@ -396,7 +396,7 @@ app.whenReady().then(() => {
     startWhisper();
 
     // GLOBAL SHORTCUT → BROWSER MIC
-    globalShortcut.register("CommandOrControl+Shift+B", () => {
+    globalShortcut.register("CommandOrControl+Shift+V", () => {
 
         console.log("GLOBAL SHORTCUT: BROWSER MIC");
 

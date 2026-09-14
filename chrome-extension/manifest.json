@@ -1,0 +1,34 @@
+{
+    "manifest_version": 3,
+    "name": "Jarvis Browser Mic",
+    "version": "1.0.0",
+    "description": "Global shortcut for Jarvis browser microphone",
+    "permissions": [
+        "commands",
+        "tabs"
+    ],
+    "host_permissions": [
+        "http://localhost:5173/*"
+    ],
+    "background": {
+        "service_worker": "background.js"
+    },
+    "content_scripts": [
+        {
+            "matches": [
+                "http://localhost:5173/*"
+            ],
+            "js": [
+                "content.js"
+            ]
+        }
+    ],
+    "commands": {
+        "start-browser-mic": {
+            "suggested_key": {
+                "default": "Ctrl+Shift+V"
+            },
+            "description": "Start Jarvis browser microphone"
+        }
+    }
+}

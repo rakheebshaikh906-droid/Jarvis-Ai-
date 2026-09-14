@@ -892,6 +892,26 @@ function App() {
     recognition.start();
   };
 
+  useEffect(() => {
+    const handleBrowserMic = (event) => {
+
+      if (event.data?.source !== "jarvis-extension") {
+        return;
+      }
+
+      if (event.data?.type === "START_BROWSER_MIC") {
+        console.log("JARVIS → BROWSER MIC START");
+        startListening();
+      }
+    };
+
+    window.addEventListener("message", handleBrowserMic);
+
+    return () => {
+      window.removeEventListener("message", handleBrowserMic);
+    };
+  }, []);
+
   const startElectronRecording = async () => {
     try {
       console.log("Starting Electron microphone recording...");
