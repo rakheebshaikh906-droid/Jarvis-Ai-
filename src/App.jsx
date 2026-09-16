@@ -209,6 +209,103 @@ function App() {
 
     return keywords.some((word) => query.includes(word));
   }
+  const normalizeCommand = (text) => {
+    return text
+      .toLowerCase()
+      .replace(/[.,!?]/g, " ")
+      .replace(/\s+/g, " ")
+      .trim();
+  };
+
+
+  const detectOpenIntent = (cmd) => {
+
+    const openWords = [
+      "open",
+      "start",
+      "launch",
+      "run",
+      "show",
+      "execute"
+    ];
+
+    const hasOpenIntent = openWords.some(word =>
+      cmd.includes(word)
+    );
+
+    // Hindi / Hinglish
+    const hindiOpenWords = [
+      "kholo",
+      "khol",
+      "chalu karo",
+      "start karo",
+      "open karo"
+    ];
+
+    const hasHindiIntent = hindiOpenWords.some(word =>
+      cmd.includes(word)
+    );
+
+    return hasOpenIntent || hasHindiIntent;
+  };
+
+
+  const detectApp = (cmd) => {
+
+    const apps = {
+
+      calculator: [
+        "calculator",
+        "calculater",
+        "calculate",
+        "calci"
+      ],
+
+      notepad: [
+        "notepad",
+        "note pad",
+        "notes"
+      ],
+
+      vscode: [
+        "vscode",
+        "vs code",
+        "visual studio code",
+        "visual code"
+      ],
+
+      chrome: [
+        "chrome",
+        "google chrome"
+      ],
+
+      explorer: [
+        "file explorer",
+        "file system",
+        "windows explorer",
+        "file manager",
+        "files"
+      ],
+
+      spotify: [
+        "spotify"
+      ]
+    };
+
+
+    for (const [app, aliases] of Object.entries(apps)) {
+
+      if (
+        aliases.some(alias =>
+          cmd.includes(alias)
+        )
+      ) {
+        return app;
+      }
+    }
+
+    return null;
+  };
 
   const handleCommand = async (text) => {
 
@@ -227,7 +324,7 @@ function App() {
         text: text,
       },
     ]);
-    const cmd = text.toLowerCase();
+    const cmd = normalizeCommand(text);
 
 
     setCommand(cmd);
@@ -564,30 +661,64 @@ function App() {
       window.open("https://www.amazon.in/", "_blank");
 
     }
-    else if (cmd.includes("open calculator")) {
-      addJarvisMessage("Opening Calculator...");
-      speak("Opening Calculator");
-      window.electronAPI?.openApp("calculator");
-    } else if (cmd.includes("open notepad")) {
-      addJarvisMessage("Opening Notepad...");
-      speak("Opening Notepad");
-      window.electronAPI?.openApp("notepad");
-    } else if (cmd.includes("vscode")) {
-      addJarvisMessage("Opening VS Code...");
-      speak("Opening VS Code");
-      window.electronAPI?.openApp("open vscode");
-    } else if (cmd.includes("open chrome")) {
-      addJarvisMessage("Opening Chrome...");
-      speak("Opening Chrome");
-      window.electronAPI?.openApp("chrome");
-    } else if (cmd.includes("open explorer")) {
-      addJarvisMessage("Opening File Explorer...");
-      speak("Opening File Explorer");
-      window.electronAPI?.openApp("explorer");
-    } else if (cmd.includes("spotify")) {
-      addJarvisMessage("Opening Spotify...");
-      speak("Opening Spotify");
-      window.electronAPI?.openApp("spotify");
+    else if (detectOpenIntent(cmd)) {
+
+      const app = detectApp(cmd);
+
+      if (app === "calculator") {
+
+        addJarvisMessage("Opening Calculator...");
+        speak("Opening Calculator");
+        window.electronAPI?.openApp("calculator");
+
+      }
+
+      else if (app === "notepad") {
+
+        addJarvisMessage("Opening Notepad...");
+        speak("Opening Notepad");
+        window.electronAPI?.openApp("notepad");
+
+      }
+
+      else if (app === "vscode") {
+
+        addJarvisMessage("Opening VS Code...");
+        speak("Opening VS Code");
+        window.electronAPI?.openApp("open vscode");
+
+      }
+
+      else if (app === "chrome") {
+
+        addJarvisMessage("Opening Chrome...");
+        speak("Opening Chrome");
+        window.electronAPI?.openApp("chrome");
+
+      }
+
+      else if (app === "explorer") {
+
+        addJarvisMessage("Opening File Explorer...");
+        speak("Opening File Explorer");
+        window.electronAPI?.openApp("file explorer");
+
+      }
+
+      else if (app === "spotify") {
+
+        addJarvisMessage("Opening Spotify...");
+        speak("Opening Spotify");
+        window.electronAPI?.openApp("spotify");
+
+      }
+
+      else {
+
+        addJarvisMessage("I couldn't identify the application.");
+        speak("I couldn't identify the application.");
+
+      }
     } else if (browserResult) {
       window.open(browserResult.url, "_blank");
 
