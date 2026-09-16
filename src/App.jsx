@@ -50,6 +50,39 @@ function App() {
   const [diskInfo, setDiskInfo] = useState(null);
   const pendingCallRef = useRef(null);
   const [pendingCall, setPendingCall] = useState(null);
+  const [currentProject, setCurrentProject] = useState(null);
+
+  useEffect(() => {
+
+    const loadCurrentProject = async () => {
+
+      try {
+
+        const project =
+          await window.electronAPI?.getCurrentProject();
+
+        if (project) {
+
+          setCurrentProject(project);
+
+          console.log(
+            "CURRENT PROJECT LOADED:",
+            project
+          );
+        }
+
+      } catch (error) {
+
+        console.error(
+          "Failed to load current project:",
+          error
+        );
+      }
+    };
+
+    loadCurrentProject();
+
+  }, []);
 
 
   function setPendingCallSafe(value) {
@@ -215,6 +248,65 @@ function App() {
       .replace(/[.,!?]/g, " ")
       .replace(/\s+/g, " ")
       .trim();
+  };
+  const parseProjectStructure = (cmd) => {
+
+    const folders = ["src"];
+    const files = ["src/scb.js"];
+
+    // "with components and pages folders"
+    const folderMatch = cmd.match(
+      /(?:with|and)\s+(.+?)\s+folders?/i
+    );
+
+    if (folderMatch) {
+
+      const folderText = folderMatch[1];
+
+      const detectedFolders = folderText
+        .split(/\s+and\s+|\s*,\s*/)
+        .map(folder => folder.trim())
+        .filter(Boolean);
+
+      detectedFolders.forEach(folder => {
+
+        if (
+          !folders.some(
+            existing =>
+              existing.toLowerCase() === folder.toLowerCase()
+          )
+        ) {
+          folders.push(folder);
+        }
+
+      });
+    }
+
+    // File extensions that we support
+    const fileRegex =
+      /\b[\w.-]+\.(js|jsx|ts|tsx|java|py|html|css|json)\b/gi;
+
+    const detectedFiles = cmd.match(fileRegex) || [];
+
+    detectedFiles.forEach(file => {
+
+      const cleanFile = file.trim();
+
+      if (
+        !files.some(
+          existing =>
+            existing.toLowerCase() === cleanFile.toLowerCase()
+        )
+      ) {
+        files.push(cleanFile);
+      }
+
+    });
+
+    return {
+      folders,
+      files
+    };
   };
 
 
@@ -660,6 +752,150 @@ function App() {
       speak("open amazon");
       window.open("https://www.amazon.in/", "_blank");
 
+    }
+    else if (
+      cmd.includes("create project") ||
+      cmd.includes("create a project")
+    ) {
+
+      // "create project xyz"
+      // "create a project xyz"
+      const match = cmd.match(
+        /create(?:\s+a)?\s+project\s+([a-zA-Z0-9_-]+)/
+      );
+
+      if (!match) {
+        addJarvisMessage("Please tell me the project name.");
+        speak("Please tell me the project name.");
+        return;
+      }
+
+      const projectName = match[1];
+
+      const structure = parseProjectStructure(cmd);
+
+      const projectData = {
+        projectName: projectName,
+        folders: structure.folders,
+        files: structure.files
+      };
+
+      try {
+
+        addJarvisMessage(
+          `Creating project ${projectName}...`
+        );
+
+        speak(
+          `Creating project ${projectName}`
+        );
+
+        const result =
+          await window.electronAPI?.createProject(
+            projectData
+          );
+
+        if (result?.success) {
+
+          setCurrentProject({
+            name: projectName,
+            path: result.path
+          });
+
+          addJarvisMessage(
+            `Project ${projectName} created successfully.`
+          );
+
+          speak(
+            `Project ${projectName} created successfully.`
+          );
+        }
+
+      } catch (error) {
+
+        console.error(
+          "Project creation failed:",
+          error
+        );
+
+        addJarvisMessage(
+          "I couldn't create the project."
+        );
+
+        speak(
+          "I couldn't create the project."
+        );
+      }
+    }
+    else if (
+      cmd.includes("create folder") ||
+      cmd.includes("create folders") ||
+      cmd.includes("create file") ||
+      cmd.includes("create files")
+    ) {
+
+      if (!currentProject) {
+        addJarvisMessage(
+          "Please create a project first."
+        );
+        speak(
+          "Please create a project first."
+        );
+        return;
+      }
+
+      const projectData = {
+        projectPath: currentProject.path,
+
+        folders: [],
+        files: []
+      };
+
+      // Temporary test
+      projectData.folders.push("components");
+      projectData.files.push("components/Navbar.jsx");
+
+      try {
+
+        addJarvisMessage(
+          `Creating files inside ${currentProject.name}...`
+        );
+
+        speak(
+          `Creating files inside ${currentProject.name}`
+        );
+
+        const result =
+          await window.electronAPI?.createFiles(
+            projectData
+          );
+
+        if (result?.success) {
+
+          addJarvisMessage(
+            "Files created successfully."
+          );
+
+          speak(
+            "Files created successfully."
+          );
+        }
+
+      } catch (error) {
+
+        console.error(
+          "File creation failed:",
+          error
+        );
+
+        addJarvisMessage(
+          "I couldn't create the files."
+        );
+
+        speak(
+          "I couldn't create the files."
+        );
+      }
     }
     else if (detectOpenIntent(cmd)) {
 

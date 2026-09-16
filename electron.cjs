@@ -462,6 +462,135 @@ ipcMain.handle("open-app", async (event, appName) => {
     }
 
 });
+ipcMain.handle("create-project", async (event, projectData) => {
+
+    console.log("CREATE PROJECT:", projectData);
+
+    const { projectName, folders = [], files = [] } = projectData;
+
+    const projectPath = path.join(
+        process.env.USERPROFILE,
+        "Desktop",
+        projectName
+    );
+
+    // Main project folder
+    fs.mkdirSync(projectPath, { recursive: true });
+
+    // Folders
+    for (const folder of folders) {
+        const folderPath = path.join(projectPath, folder);
+        fs.mkdirSync(folderPath, { recursive: true });
+    }
+
+    // Files
+    for (const file of files) {
+        const filePath = path.join(projectPath, file);
+
+        // File ke parent folder ko ensure karo
+        fs.mkdirSync(path.dirname(filePath), {
+            recursive: true
+        });
+
+        fs.writeFileSync(filePath, "");
+    }
+
+    // VS Code open
+    exec(`code "${projectPath}"`);
+    const projectInfoPath = path.join(
+        process.env.USERPROFILE,
+        "jarvis-current-project.json"
+    );
+
+    fs.writeFileSync(
+        projectInfoPath,
+        JSON.stringify({
+            name: projectName,
+            path: projectPath
+        }, null, 2)
+    );
+
+    return {
+        success: true,
+        path: projectPath,
+        projectName: projectName
+    };
+});
+ipcMain.handle("get-current-project", async () => {
+
+    const projectInfoPath = path.join(
+        process.env.USERPROFILE,
+        "jarvis-current-project.json"
+    );
+
+    try {
+
+        if (!fs.existsSync(projectInfoPath)) {
+            return null;
+        }
+
+        const data = fs.readFileSync(
+            projectInfoPath,
+            "utf-8"
+        );
+
+        const project = JSON.parse(data);
+
+        // Check that project folder still exists
+        if (!fs.existsSync(project.path)) {
+            return null;
+        }
+
+        return project;
+
+    } catch (error) {
+
+        console.error(
+            "Failed to load current project:",
+            error
+        );
+
+        return null;
+    }
+});
+ipcMain.handle("create-files", async (event, data) => {
+
+    console.log("CREATE FILES:", data);
+
+    const { projectPath, folders = [], files = [] } = data;
+
+    // Create folders
+    for (const folder of folders) {
+
+        const folderPath = path.join(
+            projectPath,
+            folder
+        );
+
+        fs.mkdirSync(folderPath, {
+            recursive: true
+        });
+    }
+
+    // Create files
+    for (const file of files) {
+
+        const filePath = path.join(
+            projectPath,
+            file
+        );
+
+        fs.mkdirSync(path.dirname(filePath), {
+            recursive: true
+        });
+
+        fs.writeFileSync(filePath, "");
+    }
+
+    return {
+        success: true
+    };
+});
 
 
 // RAM INFORMATION

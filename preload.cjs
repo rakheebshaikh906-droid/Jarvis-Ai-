@@ -27,6 +27,20 @@ contextBridge.exposeInMainWorld("electronAPI", {
             mimeType
         ),
 
+
+    createProject: (projectData) =>
+        ipcRenderer.invoke(
+            "create-project",
+            projectData
+        ),
+    createFiles: (data) =>
+        ipcRenderer.invoke(
+            "create-files",
+            data
+        ),
+    getCurrentProject: () =>
+        ipcRenderer.invoke("get-current-project"),
+
     onWakeWordDetected: (callback) => {
         ipcRenderer.removeAllListeners("wake-word-detected"); // prevent duplicates
         ipcRenderer.on("wake-word-detected", callback);
