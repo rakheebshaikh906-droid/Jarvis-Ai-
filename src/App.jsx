@@ -685,7 +685,7 @@ function App() {
 
         addJarvisMessage("Opening VS Code...");
         speak("Opening VS Code");
-        window.electronAPI?.openApp("open vscode");
+        window.electronAPI?.openApp("vscode");
 
       }
 

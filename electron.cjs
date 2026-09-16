@@ -439,9 +439,9 @@ ipcMain.handle("open-app", async (event, appName) => {
             exec("notepad");
             break;
 
-        case "vs code":
+        case "vscode":
             console.log("Open VS Code");
-            exec("vs code");
+            exec("code");
             break;
 
         case "chrome":
