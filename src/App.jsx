@@ -831,7 +831,10 @@ function App() {
       cmd.includes("create folder") ||
       cmd.includes("create folders") ||
       cmd.includes("create file") ||
-      cmd.includes("create files")
+      cmd.includes("create files") ||
+      cmd.includes("folders") ||
+      cmd.includes("files") ||
+      cmd.includes("inside")
     ) {
 
       if (!currentProject) {
@@ -851,9 +854,38 @@ function App() {
         files: []
       };
 
-      // Temporary test
-      projectData.folders.push("components");
-      projectData.files.push("components/Navbar.jsx");
+      // Detect folders
+      const folderRegex =
+        /(?:create|with)\s+([a-zA-Z0-9_-]+(?:\s+and\s+[a-zA-Z0-9_-]+)*)\s+folders?/i;
+
+      const folderMatch = cmd.match(folderRegex);
+
+      if (folderMatch) {
+
+        const folderNames = folderMatch[1]
+          .split(/\s+and\s+/i)
+          .map(folder => folder.trim())
+          .filter(Boolean);
+
+        projectData.folders.push(...folderNames);
+      }
+
+
+      // Detect files with "inside folder"
+      const fileRegex =
+        /([a-zA-Z0-9_-]+\.(?:js|jsx|ts|tsx|java|py|html|css|json))\s+inside\s+([a-zA-Z0-9_-]+)/gi;
+
+      let fileMatch;
+
+      while ((fileMatch = fileRegex.exec(cmd)) !== null) {
+
+        const fileName = fileMatch[1];
+        const folderName = fileMatch[2];
+
+        projectData.files.push(
+          `${folderName}/${fileName}`
+        );
+      }
 
       try {
 
