@@ -38,6 +38,11 @@ contextBridge.exposeInMainWorld("electronAPI", {
             "create-files",
             data
         ),
+    openProject: (projectName) =>
+        ipcRenderer.invoke(
+            "open-project",
+            projectName
+        ),
     getCurrentProject: () =>
         ipcRenderer.invoke("get-current-project"),
 
