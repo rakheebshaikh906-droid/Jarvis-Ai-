@@ -591,6 +591,44 @@ ipcMain.handle("create-files", async (event, data) => {
         success: true
     };
 });
+ipcMain.handle("open-project", async (event, projectName) => {
+
+    console.log("OPEN PROJECT:", projectName);
+
+    const projectPath = path.join(
+        process.env.USERPROFILE,
+        "Desktop",
+        projectName
+    );
+
+    if (!fs.existsSync(projectPath)) {
+        return {
+            success: false,
+            message: `Project ${projectName} not found on Desktop.`
+        };
+    }
+
+    const projectInfoPath = path.join(
+        process.env.USERPROFILE,
+        "jarvis-current-project.json"
+    );
+
+    fs.writeFileSync(
+        projectInfoPath,
+        JSON.stringify({
+            name: projectName,
+            path: projectPath
+        }, null, 2)
+    );
+
+    exec(`code "${projectPath}"`);
+
+    return {
+        success: true,
+        name: projectName,
+        path: projectPath
+    };
+});
 
 
 // RAM INFORMATION
