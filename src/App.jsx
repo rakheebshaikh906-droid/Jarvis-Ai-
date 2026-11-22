@@ -249,6 +249,24 @@ function App() {
       .replace(/\s+/g, " ")
       .trim();
   };
+  const isProjectOpenCommand = (cmd) => {
+    return (
+      cmd.includes("open") ||
+      cmd.includes("kholo") ||
+      cmd.includes("khol") ||
+      cmd.includes("chalu karo") ||
+      cmd.includes("chalu") ||
+      cmd.includes("open karo")
+    );
+  };
+  const isCreateCommand = (cmd) => {
+    return (
+      cmd.includes("create") ||
+      cmd.includes("banao") ||
+      cmd.includes("bana") ||
+      cmd.includes("banado")
+    );
+  };
   const parseProjectStructure = (cmd) => {
 
     const folders = ["src"];
@@ -428,6 +446,9 @@ function App() {
     const notesResult = handleNotesCommand(text);
     const phoneResult = handlePhoneCommand(text);
     const iselectron = !!window.electronAPI;
+
+    console.log("NORMALIZED COMMAND:", cmd);
+    console.log("CURRENT PROJECT:", currentProject);
 
 
     // ==========================================
@@ -754,15 +775,18 @@ function App() {
 
     }
     else if (
-      cmd.includes("create project") ||
-      cmd.includes("create a project")
+      isProjectOpenCommand(cmd) &&
+      (
+        cmd.includes("project") ||
+        cmd.includes("project kholo") ||
+        cmd.includes("project khol")
+      )
     ) {
 
       // "create project xyz"
       // "create a project xyz"
-      const match = cmd.match(
-        /create(?:\s+a)?\s+project\s+([a-zA-Z0-9_-]+)/
-      );
+      const match = cmd.match(/(?:open|khol|kholo)\s+([a-zA-Z0-9_-]+)\s+project/i) ||
+        cmd.match(/([a-zA-Z0-9_-]+)\s+project\s+(?:khol|kholo)/i);
 
       if (!match) {
         addJarvisMessage("Please tell me the project name.");
@@ -779,6 +803,43 @@ function App() {
         folders: structure.folders,
         files: structure.files
       };
+      // Natural Hinglish folder + file command
+
+      const naturalFolderMatch = cmd.match(
+        /(?:andar|inside)\s+([a-zA-Z0-9_-]+)\s+(?:ka|ki)\s+(?:ek\s+)?folder\s+(?:banao|bana|create)/i
+      );
+
+      if (naturalFolderMatch) {
+
+        const folderName = naturalFolderMatch[1];
+
+        if (!projectData.folders.includes(folderName)) {
+          projectData.folders.push(folderName);
+        }
+      }
+
+
+      const naturalFileMatch = cmd.match(
+        /([a-zA-Z0-9_-]+(?:\.[a-zA-Z0-9]+)?)\s+(?:ki|ka)\s+file\s+(?:banao|bana|create)/i
+      );
+
+      if (naturalFileMatch) {
+
+        const fileName = naturalFileMatch[1];
+
+        const folderMatch = cmd.match(
+          /([a-zA-Z0-9_-]+)\s+ke\s+folder\s+me/i
+        );
+
+        if (folderMatch) {
+
+          const folderName = folderMatch[1];
+
+          projectData.files.push(
+            `${folderName}/${fileName}`
+          );
+        }
+      }
 
       try {
 
@@ -828,6 +889,86 @@ function App() {
       }
     }
     else if (
+      cmd.includes("open") &&
+      cmd.includes("project")
+    ) {
+
+      const match = cmd.match(
+        /open\s+([a-zA-Z0-9_-]+)\s+project/i
+      );
+
+      if (!match) {
+        addJarvisMessage(
+          "Please tell me which project to open."
+        );
+        speak(
+          "Please tell me which project to open."
+        );
+        return;
+      }
+
+      const projectName = match[1];
+
+      try {
+
+        addJarvisMessage(
+          `Opening project ${projectName}...`
+        );
+
+        speak(
+          `Opening project ${projectName}`
+        );
+
+        const result =
+          await window.electronAPI?.openProject(
+            projectName
+          );
+
+        if (result?.success) {
+
+          setCurrentProject({
+            name: result.name,
+            path: result.path
+          });
+
+          addJarvisMessage(
+            `Project ${projectName} opened successfully.`
+          );
+
+          speak(
+            `Project ${projectName} opened successfully.`
+          );
+
+        } else {
+
+          addJarvisMessage(
+            result?.message ||
+            `Project ${projectName} was not found.`
+          );
+
+          speak(
+            result?.message ||
+            `Project ${projectName} was not found.`
+          );
+        }
+
+      } catch (error) {
+
+        console.error(
+          "Open project failed:",
+          error
+        );
+
+        addJarvisMessage(
+          "I couldn't open the project."
+        );
+
+        speak(
+          "I couldn't open the project."
+        );
+      }
+    }
+    else if (
       cmd.includes("create folder") ||
       cmd.includes("create folders") ||
       cmd.includes("create file") ||
@@ -856,8 +997,7 @@ function App() {
 
       // Detect folders
       const folderRegex =
-        /(?:create|with)\s+([a-zA-Z0-9_-]+(?:\s+and\s+[a-zA-Z0-9_-]+)*)\s+folders?/i;
-
+        /(?:create|with|banao|bana)\s+([a-zA-Z0-9_-]+(?:\s+(?:and|aur)\s+[a-zA-Z0-9_-]+)*)\s+(?:folders?|folder)/i;
       const folderMatch = cmd.match(folderRegex);
 
       if (folderMatch) {
@@ -873,14 +1013,19 @@ function App() {
 
       // Detect files with "inside folder"
       const fileRegex =
-        /([a-zA-Z0-9_-]+\.(?:js|jsx|ts|tsx|java|py|html|css|json))\s+inside\s+([a-zA-Z0-9_-]+)/gi;
+        /([a-zA-Z0-9_-]+(?:\.[a-zA-Z0-9]+)?)\s+(?:(js|jsx|ts|tsx|java|py|html|css|json)\s+)?(?:inside|andar|me)\s+([a-zA-Z0-9_-]+)/gi;
+      console.log("COMMAND:", cmd);
 
       let fileMatch;
 
       while ((fileMatch = fileRegex.exec(cmd)) !== null) {
 
-        const fileName = fileMatch[1];
-        const folderName = fileMatch[2];
+        const fileName =
+          fileMatch[2]
+            ? `${fileMatch[1]}.${fileMatch[2]}`
+            : fileMatch[1];
+
+        const folderName = fileMatch[3];
 
         projectData.files.push(
           `${folderName}/${fileName}`
